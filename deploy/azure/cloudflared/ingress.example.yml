@@ -1,0 +1,12 @@
+# 模板文件。复制为 /etc/cloudflared/config.yml 后替换 UUID。
+# 凭据文件只保存在服务器上，不提交到仓库。
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: /etc/cloudflared/REPLACE_WITH_TUNNEL_UUID.json
+
+ingress:
+  - hostname: api.sanzenin.top
+    service: http://127.0.0.1:8787
+    originRequest:
+      connectTimeout: 10s
+      httpHostHeader: api.sanzenin.top
+  - service: http_status:404
