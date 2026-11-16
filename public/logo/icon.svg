@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Sanzenin 凪">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1726"/>
+      <stop offset="1" stop-color="#1d3a4d"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8fb7c9"/>
+      <stop offset="1" stop-color="#d7e6ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  <circle cx="356" cy="158" r="52" fill="#d7e6ea" opacity="0.9"/>
+  <path d="M72 300c44-42 88-42 132 0s88 42 132 0 88-42 132 0" fill="none" stroke="url(#wave)" stroke-width="24" stroke-linecap="round"/>
+  <path d="M72 366c44-42 88-42 132 0s88 42 132 0 88-42 132 0" fill="none" stroke="#6f97ad" stroke-width="20" stroke-linecap="round" opacity="0.8"/>
+  <path d="M72 432c44-42 88-42 132 0s88 42 132 0 88-42 132 0" fill="none" stroke="#456c82" stroke-width="16" stroke-linecap="round" opacity="0.7"/>
+</svg>

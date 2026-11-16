@@ -77,6 +77,9 @@ artifacts/shirone-ai-*
 .shirones/
 .shirones-backup/
 
+# Cloudflare Wrangler local state
+.wrangler/
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

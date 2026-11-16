@@ -1,26 +1,31 @@
-# About Shirone
+# 关于 Sanzenin 凪
 
-Welcome to the demo site of **Shirone** (白音) — an expressive, anime-inspired blog theme built on the **Material 3 Expressive (M3E)** design system.
+我是 Sanzenin 凪，这个博客的作者与维护者。
 
-::github{repo="LyraVoid/Shirone"}
+我关注前端开发、内容工具与长期可维护的软件。比起追逐短暂的流行，我更在意一个系统在半年之后是否仍然容易理解、容易修改，也更愿意记录那些能够被复现的实践过程。
 
-## ✦ Design & Philosophy
+## 关于这个博客
 
-Shirone aims to combine the warmth of expressive anime aesthetics with the rigor of modern web engineering:
+这里主要发布三类内容：
 
-- **Dynamic Chromatic Spell**: Full dynamic HCT palette generation responding seamlessly to light/dark modes and user preferences with zero layout shifts.
-- **Seamless Shell Navigation**: Persistent application shell driven by Swup for continuous music playback, smooth page transitions, and preserved state.
-- **Rich Story Grimoire**: Markdown and MDX authoring with KaTeX math, Mermaid diagrams, interactive admonitions, expressive code blocks, and adaptive image galleries.
-- **Zero Extra Burden**: Optional integrations (comments, analytics, music widgets) load dynamically on demand — zero DOM footprint and zero bundle overhead when disabled.
+- 技术笔记：前端架构、构建工具、类型系统与调试过程
+- 阅读记录：书籍、文章与作品留下的问题
+- 日常随笔：生活节奏、审美判断与正在进行的项目
 
-## ✦ Tech Stack
+文章以中文为主。除非主题需要，正文不会刻意加入大量外部链接或装饰性内容。
 
-- **Framework**: [Astro 7](https://astro.build/) & [Svelte 5](https://svelte.dev/) (Runes-driven islands)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) & [Stylus](https://stylus-lang.com/)
-- **Design Standard**: [Material 3 Expressive](https://m3.material.io/)
-- **Typography**: Outfit & Yozai (悠哉圆体) with automated build-time subsetting
-- **Search Engine**: [Pagefind](https://pagefind.app/) offline full-text search
+## 站点技术
 
-## ✦ Credits
+本站使用 [Astro](https://astro.build/) 生成静态页面，界面来自 [Shirone](https://github.com/LyraVoid/Shirone) 主题。Shirone 提供基于 Material 3 Expressive 的组件系统，并支持在 npm 包模式下覆盖站点配置与内容。
 
-- **Font**: [Yozai Font (悠哉字体)](https://github.com/lxgw/yozai-font) by [lxgw](https://github.com/lxgw)
+站点部署在 Cloudflare Pages。搜索索引由 Pagefind 在构建阶段生成，不依赖第三方搜索服务。本站没有接入访问统计与评论系统。
+
+## 写作方式
+
+文章使用 Markdown 与 MDX 编写，图片与封面随内容一起保存在仓库中。发布前会执行类型检查与生产构建，确认链接、图片和导航入口都能正常使用。
+
+## 联系方式
+
+我的 GitHub 主页是 [github.com/wlz6](https://github.com/wlz6)。代码、实验和部分项目都放在那里。
+
+如果你发现文章中的错误，欢迎通过 GitHub 联系我。清楚的复现步骤与具体位置会让讨论更有效率。
