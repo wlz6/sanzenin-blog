@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "sanzenin",
+  "project_id": "57988414-108a-49ac-8f41-88618f0362e5"
+}
