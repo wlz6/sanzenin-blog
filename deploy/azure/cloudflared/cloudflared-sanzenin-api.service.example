@@ -1,0 +1,27 @@
+# 模板文件。复制到 /etc/systemd/system/ 后再启用。
+[Unit]
+Description=Cloudflare Tunnel for sanzenin API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cloudflared
+Group=cloudflared
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /etc/cloudflared/config.yml tunnel run REPLACE_WITH_TUNNEL_UUID
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target

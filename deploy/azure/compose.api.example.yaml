@@ -1,0 +1,41 @@
+# 模板文件。复制为 compose.api.yaml 后再修改。
+# 使用 --profile api 才会创建服务，普通的 docker compose up 不会启动它。
+name: sanzenin-api
+
+services:
+  api:
+    profiles: ["api"]
+    image: ${API_IMAGE:?set API_IMAGE in api.env}
+    init: true
+    restart: "no"
+    env_file:
+      - api.env
+    ports:
+      - "127.0.0.1:${API_PORT:-8787}:${API_CONTAINER_PORT:-8787}"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.75
+    pids_limit: 128
+    stop_grace_period: 20s
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:${API_CONTAINER_PORT:-8787}/healthz || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
