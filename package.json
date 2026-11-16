@@ -8,7 +8,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "sync:obsidian": "node scripts/sync-obsidian.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5",
@@ -22,6 +23,7 @@
     "@iconify-json/simple-icons": "^1.2.93",
     "@astrojs/check": "^0.9.10",
     "typescript": "^6.0.3",
-    "shirones": "^0.1.5"
+    "shirones": "^0.1.5",
+    "yaml": "^2.9.1"
   }
 }
