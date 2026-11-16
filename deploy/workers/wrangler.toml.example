@@ -1,0 +1,10 @@
+# 模板文件，不随项目自动部署。
+name = "sanzenin-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-16"
+
+routes = [
+  { pattern = "api.sanzenin.top/*", zone_name = "sanzenin.top" }
+]
+
+# 生产环境变量应通过 `wrangler secret put` 或 Cloudflare Dashboard 设置。
