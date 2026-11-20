@@ -27,12 +27,10 @@ import { onMount, tick, untrack } from "svelte";
 import {
 	GlassButton,
 	GlassDialog,
-	GlassDock,
 	GlassInput,
 	GlassNavigation,
 	GlassPanel,
 	GlassPopover,
-	type GlassDockItem,
 	type GlassNavItem,
 } from "../glass/index.ts";
 import LaunchScreen from "../launch/LaunchScreen.svelte";
@@ -165,7 +163,6 @@ let reducedMotion = $state(false);
 let grabbing = $state(false);
 let viewportWidth = $state(typeof window !== "undefined" ? window.innerWidth : 1280);
 let viewportHeight = $state(typeof window !== "undefined" ? window.innerHeight : 800);
-let activeScrollTop = $state(0);
 let currentPath = $state(
 	initialStage === "launch"
 		? "/"
@@ -219,16 +216,6 @@ const activeSpaceIndex = $derived(
 );
 const workspaceVisible = $derived(stage === "workspace" || frame.workspaceOpacity > 0.01);
 const launchVisible = $derived(stage === "launch" || frame.heroOpacity > 0.01);
-
-const dockItems = $derived<GlassDockItem[]>(
-	SPACES.map((space) => ({
-		id: space.id,
-		label: space.label,
-		href: space.href,
-		icon: space.icon,
-		ariaLabel: `${space.label} · ${space.labelZh}`,
-	})),
-);
 
 const navItems = $derived<GlassNavItem[]>(
 	SPACES.map((space) => ({
@@ -393,7 +380,6 @@ function focusSpace(
 	const index = SPACES.findIndex((s) => s.id === spaceId);
 	if (index < 0) return;
 	activeSpace = spaceId;
-	activeScrollTop = savedColumnScroll.get(spaceId) ?? 0;
 
 	const targetX = cameraXForIndex(index);
 	if (camera) {
@@ -467,9 +453,6 @@ function handleSpaceLinkSelect(id: string, event?: MouseEvent) {
 
 function handleColumnScroll(spaceId: SpaceId, top: number) {
 	savedColumnScroll.set(spaceId, top);
-	if (spaceId === activeSpace) {
-		activeScrollTop = top;
-	}
 }
 
 function handleWheel(event: WheelEvent) {
@@ -761,11 +744,6 @@ const workspaceTransform = $derived(
 		? "none"
 		: `translate3d(0, ${frame.workspaceTranslateY.toFixed(2)}px, 0) scale(${frame.workspaceScale.toFixed(4)})`,
 );
-const dockTransform = $derived(
-	reducedMotion || frame.dockProgress >= 0.999
-		? "none"
-		: `translate3d(0, ${((1 - frame.dockProgress) * 84).toFixed(2)}px, 0) scale(${(0.96 + frame.dockProgress * 0.04).toFixed(4)})`,
-);
 </script>
 
 {#snippet timeChoices(onLaunchScreen: boolean)}
@@ -841,6 +819,7 @@ const dockTransform = $derived(
 					>
 						⌕ ⌘K
 					</GlassButton>
+					{@render sceneControls()}
 					<AuthStatusMenu redirectTo={currentPath} compact zone="forest" />
 				{/snippet}
 			</GlassNavigation>
@@ -938,91 +917,6 @@ const dockTransform = $derived(
 			</div>
 		</div>
 
-		<!-- 底部自动收敛 Liquid Glass Dock + 场景氛围卫星气泡（仅 Launch 后呈现） -->
-		<div
-			class="lg-workspace-dock-wrap"
-			data-interactive={frame.workspaceInteractive ? "true" : "false"}
-			inert={!frame.workspaceInteractive}
-			style:opacity={frame.dockProgress.toFixed(4)}
-			style:transform={dockTransform}
-		>
-			<GlassDock
-				items={dockItems}
-				activeId={activeSpace}
-				scrollTop={activeScrollTop}
-				zone="forest"
-				onSelect={(item, e) => handleSpaceLinkSelect(item.id, e)}
-			>
-				{#snippet satelliteEnd()}
-					<GlassPopover
-						bind:open={scenePopoverOpen}
-						placement="top-end"
-						title="湖畔氛围与场景"
-						ariaLabel="场景控制面板"
-					>
-						{#snippet trigger({ toggle, open })}
-							<GlassButton
-								variant="regular"
-								shape="circle"
-								size="md"
-								pressed={open}
-								ariaLabel="湖畔场景控制"
-								title="湖畔时刻、声景与画质"
-								onclick={toggle}
-							>
-								☾
-							</GlassButton>
-						{/snippet}
-						{#snippet children({ close })}
-							<div class="lg-scene-controls">
-								<div class="lg-scene-group">
-									<span class="lg-scene-label lg-type-micro">时刻氛围</span>
-									{@render timeChoices(false)}
-								</div>
-
-								<div class="lg-scene-group">
-									<span class="lg-scene-label lg-type-micro">渲染画质</span>
-									<div class="lg-scene-chips">
-										{#each QUALITY_OPTIONS as option (option.id)}
-											<button
-												type="button"
-												class="lg-control lg-scene-chip"
-												aria-pressed={sceneQuality === option.id}
-												onclick={() => selectSceneQuality(option.id)}
-											>
-												{option.label}
-											</button>
-										{/each}
-									</div>
-								</div>
-
-								<div class="lg-scene-footer-actions">
-									<GlassButton
-										variant="ghost-on-glass"
-										size="sm"
-										pressed={audioEnabled}
-										onclick={toggleAmbientAudio}
-									>
-										{audioEnabled ? "声景：开启" : "声景：静音"}
-									</GlassButton>
-									<GlassButton
-										variant="ghost-on-glass"
-										size="sm"
-										onclick={() => {
-											close();
-											void returnToLaunch(true);
-										}}
-									>
-										返回湖畔首屏
-									</GlassButton>
-								</div>
-							</div>
-						{/snippet}
-					</GlassPopover>
-				{/snippet}
-			</GlassDock>
-		</div>
-
 		<!-- Cmd/Ctrl+K 全站 96 篇文章快捷检索对话框 -->
 		<GlassDialog
 			bind:open={searchOpen}
@@ -1066,6 +960,62 @@ const dockTransform = $derived(
 	{/if}
 </div>
 
+{#snippet sceneControls()}
+	<GlassPopover bind:open={scenePopoverOpen} placement="bottom-end" title="湖畔氛围与场景" ariaLabel="场景控制面板">
+		{#snippet trigger({ toggle, open })}
+			<GlassButton
+				variant="ghost-on-glass"
+				shape="circle"
+				size="sm"
+				pressed={open}
+				ariaLabel="湖畔场景控制"
+				title="湖畔时刻、声景与画质"
+				onclick={toggle}
+			>
+				☾
+			</GlassButton>
+		{/snippet}
+		{#snippet children({ close })}
+			<div class="lg-scene-controls">
+				<div class="lg-scene-group">
+					<span class="lg-scene-label lg-type-micro">时刻氛围</span>
+					{@render timeChoices(false)}
+				</div>
+				<div class="lg-scene-group">
+					<span class="lg-scene-label lg-type-micro">渲染画质</span>
+					<div class="lg-scene-chips">
+						{#each QUALITY_OPTIONS as option (option.id)}
+							<button
+								type="button"
+								class="lg-control lg-scene-chip"
+								aria-pressed={sceneQuality === option.id}
+								onclick={() => selectSceneQuality(option.id)}
+							>
+								{option.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="lg-scene-footer-actions">
+					<GlassButton variant="ghost-on-glass" size="sm" pressed={audioEnabled} onclick={toggleAmbientAudio}>
+						{audioEnabled ? "声景：开启" : "声景：静音"}
+					</GlassButton>
+					<GlassButton
+						variant="ghost-on-glass"
+						size="sm"
+						onclick={() => {
+							close();
+							returnToLaunch();
+						}}
+					>
+						返回湖畔首屏
+					</GlassButton>
+				</div>
+			</div>
+		{/snippet}
+	</GlassPopover>
+{/snippet}
+
 <style>
 	.lg-workspace-root {
 		position: fixed;
@@ -1076,25 +1026,14 @@ const dockTransform = $derived(
 		pointer-events: none;
 	}
 
-	.lg-workspace-chrome,
-	.lg-workspace-dock-wrap {
+	.lg-workspace-chrome {
 		position: fixed;
 		inset: 0;
 		pointer-events: none;
-	}
-
-	.lg-workspace-chrome {
 		z-index: 42;
 	}
 
-	.lg-workspace-dock-wrap {
-		z-index: 40;
-		transform-origin: center bottom;
-	}
-
-	.lg-workspace-chrome[data-interactive="true"] :global(.lg-nav),
-	.lg-workspace-dock-wrap[data-interactive="true"] :global(.lg-dock-shell),
-	.lg-workspace-dock-wrap[data-interactive="true"] :global(.lg-dock-reveal-zone) {
+	.lg-workspace-chrome[data-interactive="true"] :global(.lg-nav) {
 		pointer-events: auto;
 	}
 
@@ -1115,7 +1054,7 @@ const dockTransform = $derived(
 	.lg-stage-track {
 		position: absolute;
 		top: calc(74px + var(--lg-safe-top));
-		bottom: calc(84px + var(--lg-safe-bottom));
+		bottom: calc(16px + var(--lg-safe-bottom));
 		left: 0;
 		right: 0;
 		transform-origin: 0 0;
@@ -1163,7 +1102,7 @@ const dockTransform = $derived(
 		display: flex;
 		flex-direction: column;
 		gap: 14px;
-		min-width: 15.5rem;
+		width: min(15.5rem, calc(100vw - 56px - var(--lg-safe-left) - var(--lg-safe-right)));
 	}
 
 	.lg-scene-group {
@@ -1311,8 +1250,7 @@ const dockTransform = $derived(
 
 	@media (max-width: 680px) {
 		.lg-stage-track {
-			top: calc(68px + var(--lg-safe-top));
-			bottom: calc(74px + var(--lg-safe-bottom));
+			top: calc(116px + var(--lg-safe-top));
 		}
 	}
 </style>

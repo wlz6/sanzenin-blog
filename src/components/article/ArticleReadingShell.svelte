@@ -3,12 +3,10 @@ import { onMount, type Snippet } from "svelte";
 import {
 	GlassButton,
 	GlassDialog,
-	GlassDock,
 	GlassNavigation,
 	GlassPopover,
 	GlassSurface,
 	type GlassBreadcrumbItem,
-	type GlassDockItem,
 	type GlassTocItem,
 } from "../glass/index.ts";
 import { ArticleComments, AuthStatusMenu } from "../social/index.ts";
@@ -35,14 +33,6 @@ let {
 	isPost?: boolean;
 	children?: Snippet;
 } = $props();
-
-const DOCK_ITEMS: readonly GlassDockItem[] = [
-	{ id: "blog", label: "Blog", href: "/blog/", icon: "✦", ariaLabel: "Blog · 文章" },
-	{ id: "projects", label: "Projects", href: "/projects/", icon: "⌘", ariaLabel: "Projects · 项目" },
-	{ id: "gallery", label: "Gallery", href: "/gallery/", icon: "◈", ariaLabel: "Gallery · 画廊" },
-	{ id: "about", label: "About", href: "/about/", icon: "☾", ariaLabel: "About · 关于" },
-	{ id: "guestbook", label: "Guestbook", href: "/guestbook/", icon: "✎", ariaLabel: "Guestbook · 留言板" },
-];
 
 let articleSlotEl = $state<HTMLDivElement>();
 let tocItems = $state<GlassTocItem[]>([]);
@@ -269,14 +259,8 @@ onMount(() => {
 		{/if}
 	</div>
 
-	<GlassDock
-		items={DOCK_ITEMS}
-		activeId="blog"
-		scrollTop={pageScrollTop}
-		readingMode={true}
-		zone="forest"
-	>
-		{#snippet satelliteEnd()}
+	{#if pageScrollTop > 240}
+		<div class="lg-reading-top">
 			<GlassButton
 				variant="regular"
 				shape="circle"
@@ -287,8 +271,8 @@ onMount(() => {
 			>
 				↑
 			</GlassButton>
-		{/snippet}
-	</GlassDock>
+		</div>
+	{/if}
 
 	<GlassDialog
 		open={Boolean(lightboxSrc)}
@@ -314,8 +298,15 @@ onMount(() => {
 		padding:
 			calc(82px + var(--lg-safe-top))
 			max(14px, var(--lg-safe-right))
-			calc(108px + var(--lg-safe-bottom))
+			calc(72px + var(--lg-safe-bottom))
 			max(14px, var(--lg-safe-left));
+	}
+
+	.lg-reading-top {
+		position: fixed;
+		right: calc(16px + var(--lg-safe-right));
+		bottom: calc(16px + var(--lg-safe-bottom));
+		z-index: 42;
 	}
 
 	.lg-reading-grid {

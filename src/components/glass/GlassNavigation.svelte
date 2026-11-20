@@ -262,7 +262,6 @@ const clampedProgress = $derived(
 		max-width: calc(100vw - 24px - var(--lg-safe-left) - var(--lg-safe-right));
 		z-index: 42;
 		--lg-surface-radius: var(--lg-radius-pill);
-		overflow: hidden;
 	}
 
 	.lg-nav__inner {
@@ -417,6 +416,36 @@ const clampedProgress = $derived(
 		height: 100%;
 		transform-origin: left center;
 		background: linear-gradient(90deg, var(--lg-moonlight), var(--lg-firefly-gold));
+	}
+
+	@media (max-width: 680px) {
+		.lg-nav:has(.lg-nav__track) {
+			--lg-surface-radius: var(--lg-radius-panel);
+			--lg-popover-top: calc(116px + var(--lg-safe-top));
+		}
+
+		.lg-nav:has(.lg-nav__track) .lg-nav__inner {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+		}
+
+		.lg-nav:has(.lg-nav__track) .lg-nav__brand {
+			display: block;
+			line-height: 40px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.lg-nav__track {
+			grid-column: 1 / -1;
+			grid-row: 2;
+			max-width: none;
+		}
+
+		.lg-nav:has(.lg-nav__track) .lg-nav__trailing {
+			grid-column: 2;
+			grid-row: 1;
+		}
 	}
 
 	@media (hover: hover) and (pointer: fine) {

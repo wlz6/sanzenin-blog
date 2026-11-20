@@ -153,10 +153,10 @@ $effect(() => {
 			aria-label={ariaLabel}
 		>
 			<GlassSurface
-				variant="floating-chrome"
+				variant="overlay"
 				{zone}
 				elevation={3}
-				filter="chrome"
+				embedded={false}
 				radius="var(--lg-radius-panel)"
 				class="lg-dropdown__surface"
 			>
@@ -210,7 +210,7 @@ $effect(() => {
 		min-width: 13.5rem;
 		max-width: min(20rem, calc(100vw - 24px));
 		transform-origin: var(--lg-origin, top right);
-		animation: lg-dropdown-in var(--lg-dur-dropdown) var(--lg-ease-out) both;
+		animation: lg-dropdown-in var(--lg-dur-dropdown) var(--lg-ease-out);
 	}
 
 	.lg-dropdown--bottom-start { top: calc(100% + 8px); left: 0; }
@@ -221,7 +221,6 @@ $effect(() => {
 	.lg-dropdown--top-end { bottom: calc(100% + 8px); right: 0; }
 
 	:global(.lg-dropdown__surface) {
-		--lg-surface-fill: var(--lg-fill-elevated);
 		overflow: hidden;
 	}
 
@@ -312,14 +311,7 @@ $effect(() => {
 	}
 
 	@keyframes lg-dropdown-in {
-		from {
-			opacity: 0;
-			transform: scale(0.95);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
+		from { transform: scale(0.96); }
 	}
 
 	@media (hover: hover) and (pointer: fine) {

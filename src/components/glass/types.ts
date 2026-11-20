@@ -2,6 +2,7 @@ import type { Snippet } from "svelte";
 
 export type GlassVariant =
 	| "floating-chrome"
+	| "overlay"
 	| "launch-lens"
 	| "dock-pill"
 	| "reading-surface"

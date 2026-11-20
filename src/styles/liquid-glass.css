@@ -34,7 +34,7 @@
 	--lg-firefly-glow: rgba(246, 215, 122, 0.34);
 	--lg-separator: rgba(185, 216, 232, 0.18);
 	--lg-separator-strong: rgba(238, 246, 251, 0.28);
-	--lg-scrim-modal: rgba(8, 17, 32, 0.58);
+	--lg-scrim-modal: rgba(8, 17, 32, 0.34);
 	--lg-scrim-reading: rgba(9, 19, 34, 0.46);
 	--lg-scrim-clear-dim: rgba(10, 22, 42, 0.34);
 
@@ -256,6 +256,10 @@ html[data-lg-refract="svg"] .lg-surface[data-lg-filter="chrome"] > .lg-backdrop 
 	backdrop-filter: blur(var(--lg-blur-svg, 12px)) url(#lg-refract-chrome) saturate(var(--lg-saturate));
 }
 
+html[data-lg-refract="svg"] .lg-surface[data-lg-variant="overlay"] > .lg-backdrop {
+	backdrop-filter: blur(var(--lg-blur-svg)) url(#lg-refract-chrome) saturate(var(--lg-saturate)) brightness(var(--lg-brightness));
+}
+
 html[data-lg-refract="svg"] .lg-surface[data-lg-filter="panel"] > .lg-backdrop {
 	backdrop-filter: blur(var(--lg-blur-svg, 16px)) url(#lg-refract-panel) saturate(var(--lg-saturate));
 }
@@ -330,7 +334,7 @@ html[data-lg-refract="svg"] .lg-surface[data-lg-filter="panel"] > .lg-backdrop {
 }
 
 /* ==========================================================================
- * 5 大玻璃材质变体（data-lg-variant）
+ * 玻璃材质变体（data-lg-variant）
  * ========================================================================== */
 
 .lg-surface[data-lg-variant="floating-chrome"] {
@@ -340,6 +344,17 @@ html[data-lg-refract="svg"] .lg-surface[data-lg-filter="panel"] > .lg-backdrop {
 	--lg-saturate: 160%;
 	--lg-surface-rim: var(--lg-rim-gradient);
 	--lg-surface-bevel: var(--lg-inner-bevel);
+}
+
+.lg-surface[data-lg-variant="overlay"] {
+	--lg-surface-fill: color-mix(in srgb, var(--lg-fill-elevated) 80%, var(--lg-night-abyss));
+	--lg-blur: 20px;
+	--lg-blur-svg: 8px;
+	--lg-saturate: 145%;
+	--lg-brightness: 0.8;
+	--lg-rim-width: 1.5px;
+	--lg-surface-rim: var(--lg-rim-lens);
+	--lg-surface-bevel: var(--lg-inner-bevel-lens);
 }
 
 .lg-surface[data-lg-variant="launch-lens"] {

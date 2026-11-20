@@ -132,10 +132,10 @@ $effect(() => {
 			data-instant={instant ? "true" : undefined}
 		>
 			<GlassSurface
-				variant="floating-chrome"
+				variant="overlay"
 				{zone}
 				elevation={4}
-				filter="chrome"
+				embedded={false}
 				radius="var(--lg-radius-window)"
 				class="lg-dialog__surface"
 			>
@@ -185,21 +185,29 @@ $effect(() => {
 			calc(16px + var(--lg-safe-right))
 			calc(20px + var(--lg-safe-bottom))
 			calc(16px + var(--lg-safe-left));
-		background: var(--lg-scrim-modal);
-		animation: lg-backdrop-in var(--lg-dur-modal) var(--lg-ease-out) both;
 	}
 
-	.lg-dialog-backdrop[data-instant="true"] {
+	.lg-dialog-backdrop::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--lg-scrim-modal);
+		animation: lg-backdrop-in var(--lg-dur-modal) var(--lg-ease-out);
+	}
+
+	.lg-dialog-backdrop[data-instant="true"]::before {
 		animation-duration: 120ms;
 	}
 
 	.lg-dialog {
+		position: relative;
 		width: min(100%, 40rem);
 		max-height: min(82dvh, 720px);
 		display: flex;
 		flex-direction: column;
 		transform-origin: center;
-		animation: lg-dialog-in var(--lg-dur-modal) var(--lg-ease-out) both;
+		animation: lg-dialog-in var(--lg-dur-modal) var(--lg-ease-out);
 	}
 
 	.lg-dialog[data-instant="true"] {
@@ -215,7 +223,6 @@ $effect(() => {
 	}
 
 	:global(.lg-dialog__surface) {
-		--lg-surface-fill: var(--lg-fill-elevated);
 		display: flex;
 		flex-direction: column;
 		max-height: inherit;
@@ -309,14 +316,7 @@ $effect(() => {
 	}
 
 	@keyframes lg-dialog-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
+		from { transform: scale(0.97); }
 	}
 
 	@media (hover: hover) and (pointer: fine) {

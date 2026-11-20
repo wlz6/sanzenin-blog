@@ -82,10 +82,10 @@ $effect(() => {
 			aria-label={ariaLabel ?? title ?? "悬浮面板"}
 		>
 			<GlassSurface
-				variant="floating-chrome"
+				variant="overlay"
 				{zone}
 				elevation={3}
-				filter="chrome"
+				embedded={false}
 				radius="var(--lg-radius-panel)"
 				class="lg-popover__surface"
 			>
@@ -115,7 +115,7 @@ $effect(() => {
 		min-width: 14rem;
 		max-width: min(24rem, calc(100vw - 24px));
 		transform-origin: var(--lg-origin, top right);
-		animation: lg-popover-in var(--lg-dur-popover) var(--lg-ease-out) both;
+		animation: lg-popover-in var(--lg-dur-popover) var(--lg-ease-out);
 	}
 
 	.lg-popover--bottom-start { top: calc(100% + 10px); left: 0; }
@@ -126,7 +126,6 @@ $effect(() => {
 	.lg-popover--top-end { bottom: calc(100% + 10px); right: 0; }
 
 	:global(.lg-popover__surface) {
-		--lg-surface-fill: var(--lg-fill-elevated);
 		overflow: hidden;
 	}
 
@@ -149,25 +148,24 @@ $effect(() => {
 	}
 
 	@keyframes lg-popover-in {
-		from {
-			opacity: 0;
-			transform: scale(0.95);
-			filter: blur(4px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-			filter: blur(0px);
-		}
+		from { transform: scale(0.96); }
 	}
 
 	@media (max-width: 640px) {
 		.lg-popover {
 			position: fixed;
-			inset: auto 12px calc(12px + var(--lg-safe-bottom)) 12px;
+			inset: auto max(12px, var(--lg-safe-right)) calc(12px + var(--lg-safe-bottom)) max(12px, var(--lg-safe-left));
 			translate: none;
 			max-width: none;
 			transform-origin: bottom center;
+		}
+
+		.lg-popover--bottom-start,
+		.lg-popover--bottom-center,
+		.lg-popover--bottom-end {
+			top: var(--lg-popover-top, calc(68px + var(--lg-safe-top)));
+			bottom: auto;
+			transform-origin: top center;
 		}
 	}
 

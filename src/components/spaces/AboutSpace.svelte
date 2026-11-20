@@ -14,7 +14,7 @@ let {
 <section class="lg-about-space" aria-label="关于作者">
 	<header class="lg-about-space__hero">
 		<div class="lg-about-space__identity">
-			<img src="/logo/icon.svg" alt={site.author} width="54" height="54" class="lg-about-space__avatar" />
+			<img src={site.avatarUrl} alt={site.author} width="54" height="54" class="lg-about-space__avatar" />
 			<div>
 				<h3 class="lg-about-space__name">{site.author}</h3>
 				<p class="lg-about-space__bio">{site.bio}</p>
@@ -73,6 +73,7 @@ let {
 	.lg-about-space__avatar {
 		width: 54px;
 		height: 54px;
+		object-fit: cover;
 		border-radius: 50%;
 		border: 1px solid var(--lg-separator-strong);
 		background: rgba(16, 29, 56, 0.72);

@@ -70,6 +70,7 @@ export interface BlogSiteMetadata {
 	title: string;
 	subtitle: string;
 	author: string;
+	avatarUrl: string;
 	bio: string;
 	githubUrl: string;
 	siteUrl: string;
