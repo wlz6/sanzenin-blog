@@ -24,26 +24,27 @@ let mountEl: HTMLDivElement;
 let bridgeState = $state<SceneBridgeState>(sceneBridge.getState());
 
 const fallbackUrl = url(SCENE_ASSETS.fallbackPoster);
+const posterFilters = {
+	blue_hour: { sepia: 0, hue: 0, saturation: 1, brightness: 1, contrast: 1 },
+	moonlit: { sepia: 0, hue: 0, saturation: 1.06, brightness: 1.08, contrast: 1 },
+	midnight: { sepia: 0, hue: 0, saturation: 1, brightness: 0.82, contrast: 1.08 },
+	dusk: { sepia: 0.32, hue: -22, saturation: 1.18, brightness: 1, contrast: 1 },
+} satisfies Record<TimeOfDay, object>;
 const showWebgl = $derived(
 	bridgeState.quality !== "static" && !bridgeState.webglFallback && bridgeState.assetsReady,
 );
 
 const staticFilterStyle = $derived.by(() => {
 	const blurPx = (bridgeState.opticalBlur * 8).toFixed(2);
-	const bright = (1 - bridgeState.opticalDim * 0.28).toFixed(3);
-	const phaseFilter =
-		bridgeState.timeOfDay === "dusk"
-			? "sepia(0.32) hue-rotate(-22deg) saturate(1.18)"
-			: bridgeState.timeOfDay === "moonlit"
-				? "brightness(1.08) saturate(1.06)"
-				: bridgeState.timeOfDay === "midnight"
-					? "brightness(0.82) contrast(1.08)"
-					: "";
-	return `blur(${blurPx}px) brightness(${bright}) ${phaseFilter}`.trim();
+	const { sepia, hue, saturation, brightness, contrast } = posterFilters[bridgeState.timeOfDay];
+	const bright = (brightness * (1 - bridgeState.opticalDim * 0.28)).toFixed(3);
+	return `blur(${blurPx}px) brightness(${bright}) sepia(${sepia}) hue-rotate(${hue}deg) saturate(${saturation}) contrast(${contrast})`;
 });
 
 const staticScaleStyle = $derived(
-	`scale(${(1 + bridgeState.cameraTransition * 0.065 + bridgeState.opticalBlur * 0.025).toFixed(4)})`,
+	bridgeState.reducedMotion
+		? "none"
+		: `scale(${(1 + bridgeState.cameraTransition * 0.065 + bridgeState.opticalBlur * 0.025).toFixed(4)})`,
 );
 
 $effect(() => {
@@ -120,6 +121,7 @@ onMount(() => {
 	class="firefly-scene-root"
 	data-testid="lake-scene-root"
 	data-time-phase={bridgeState.timeOfDay}
+	data-reduced-motion={bridgeState.reducedMotion}
 	data-scene-quality={bridgeState.quality}
 	data-interaction-mode={bridgeState.interactionMode}
 	data-girl-state={bridgeState.girlPhase}
@@ -170,9 +172,8 @@ onMount(() => {
 		object-fit: cover;
 		object-position: 62% 52%;
 		transition:
-			filter 320ms ease-out,
-			transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-		will-change: transform, filter;
+			filter var(--lg-dur-dock) var(--lg-ease-out),
+			transform var(--lg-dur-popover) var(--lg-ease-camera);
 	}
 
 	.firefly-scene-canvas-host {
@@ -193,10 +194,11 @@ onMount(() => {
 		cursor: crosshair;
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.firefly-scene-poster,
-		.firefly-scene-canvas-host {
-			transition-duration: 0.01ms !important;
-		}
+	.firefly-scene-root[data-reduced-motion="true"] .firefly-scene-poster {
+		transition: filter var(--lg-dur-dropdown) var(--lg-ease-out);
+	}
+
+	.firefly-scene-root[data-reduced-motion="true"] .firefly-scene-canvas-host {
+		transition-duration: var(--lg-dur-dropdown);
 	}
 </style>

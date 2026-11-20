@@ -23,7 +23,7 @@ const savedColumnScroll = new Map<string, number>();
 </script>
 
 <script lang="ts">
-import { onMount, tick } from "svelte";
+import { onMount, tick, untrack } from "svelte";
 import {
 	GlassButton,
 	GlassDialog,
@@ -160,7 +160,7 @@ let frame = $state<LaunchTimelineFrame>(
 		false,
 	),
 );
-let launching = $state(false);
+let targetStage: WorkspaceStage = initialStage;
 let reducedMotion = $state(false);
 let grabbing = $state(false);
 let viewportWidth = $state(typeof window !== "undefined" ? window.innerWidth : 1280);
@@ -182,6 +182,7 @@ let searchOpen = $state(false);
 let searchQuery = $state("");
 let scenePopoverOpen = $state(false);
 let scenePhase = $state<TimeOfDay>(sceneBridge.getState().timeOfDay);
+const scenePhaseIndex = $derived(TIME_OPTIONS.findIndex((option) => option.id === scenePhase));
 let sceneQuality = $state<SceneQuality>(sceneBridge.getState().quality);
 let audioEnabled = $state<boolean>(sceneBridge.getState().audioEnabled);
 
@@ -410,43 +411,34 @@ function focusSpace(
 	}
 }
 
-async function handleLaunch() {
-	if (!coordinator || launching) return;
-	launching = true;
+function enterWorkspace(space: SpaceId, pushHistory: boolean) {
+	if (!coordinator) return;
+	targetStage = "workspace";
 	ensureBlogData();
-	const targetSpace: SpaceId = "blog";
-	activeSpace = targetSpace;
-	activeScrollTop = savedColumnScroll.get(targetSpace) ?? 0;
+	focusSpace(space, { instant: true });
 
-	void tick().then(() => {
-		camera?.snapTo(cameraXForIndex(0), 0, 1);
-	});
-
-	await coordinator.transitionTo("workspace", {
+	void coordinator.transitionTo("workspace", {
 		onFrame: (next) => {
 			frame = next;
 		},
 		onRouteCommit: () => {
 			stage = "workspace";
-			commitWorkspaceHistory("workspace", targetSpace, "push");
-		},
-		onComplete: (_target, finalFrame) => {
-			stage = "workspace";
-			frame = finalFrame;
-			launching = false;
-		},
-		onCancel: () => {
-			launching = false;
+			if (pushHistory) commitWorkspaceHistory("workspace", space, "push");
+			else updateDocumentTitle("workspace", space);
 		},
 	});
 }
 
-async function returnToLaunch(pushHistory = true) {
+function handleLaunch() {
+	if (targetStage !== "workspace") enterWorkspace("blog", true);
+}
+
+function returnToLaunch(pushHistory = true) {
 	if (!coordinator) return;
 	searchOpen = false;
 	scenePopoverOpen = false;
-	launching = true;
-	await coordinator.transitionTo("launch", {
+	targetStage = "launch";
+	void coordinator.transitionTo("launch", {
 		onFrame: (next) => {
 			frame = next;
 		},
@@ -459,14 +451,6 @@ async function returnToLaunch(pushHistory = true) {
 				updateDocumentTitle("launch", activeSpace);
 			}
 		},
-		onComplete: (_target, finalFrame) => {
-			stage = "launch";
-			frame = finalFrame;
-			launching = false;
-		},
-		onCancel: () => {
-			launching = false;
-		},
 	});
 }
 
@@ -477,7 +461,8 @@ function handleSpaceLinkSelect(id: string, event?: MouseEvent) {
 	event?.preventDefault();
 	const found = SPACES.find((s) => s.id === id);
 	if (!found) return;
-	focusSpace(found.id, { history: "push" });
+	if (targetStage === "launch") enterWorkspace(found.id, true);
+	else focusSpace(found.id, { history: "push" });
 }
 
 function handleColumnScroll(spaceId: SpaceId, top: number) {
@@ -559,6 +544,7 @@ function movePointer(event: PointerEvent) {
 		}
 		grabbing = true;
 		suppressClick = true;
+		drag.camX = camera.getPosition().x + dx;
 		stageViewportEl.setPointerCapture(event.pointerId);
 	}
 
@@ -652,8 +638,10 @@ $effect(() => {
 	camera = new SpringCamera2D((x) => {
 		worldEl.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
 	});
-	camera.setReducedMotion(reducedMotion);
-	camera.snapTo(cameraXForIndex(activeSpaceIndex), 0, 1);
+	untrack(() => {
+		camera?.setReducedMotion(reducedMotion);
+		camera?.snapTo(cameraXForIndex(activeSpaceIndex), 0, 1);
+	});
 
 	stageEl.addEventListener("wheel", handleWheel, { passive: false });
 	stageEl.addEventListener("click", preventDragClick, true);
@@ -683,6 +671,8 @@ onMount(() => {
 	};
 	syncReduced();
 	mq.addEventListener("change", syncReduced);
+	const motionObserver = new MutationObserver(syncReduced);
+	motionObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
 	coordinator = new TransitionCoordinator(initialStage);
 	coordinator.setReducedMotion(reducedMotion);
@@ -730,24 +720,8 @@ onMount(() => {
 		}
 
 		ensureBlogData();
-		if (stage === "launch" && coordinator) {
-			activeSpace = resolved.space;
-			void tick().then(() => {
-				camera?.snapTo(cameraXForIndex(SPACES.findIndex((s) => s.id === resolved.space)), 0, 1);
-			});
-			void coordinator.transitionTo("workspace", {
-				onFrame: (next) => {
-					frame = next;
-				},
-				onRouteCommit: () => {
-					stage = "workspace";
-					updateDocumentTitle("workspace", resolved.space);
-				},
-				onComplete: (_t, finalFrame) => {
-					stage = "workspace";
-					frame = finalFrame;
-				},
-			});
+		if (stage === "launch" || targetStage === "launch") {
+			enterWorkspace(resolved.space, false);
 			return;
 		}
 
@@ -764,6 +738,7 @@ onMount(() => {
 
 	return () => {
 		mq.removeEventListener("change", syncReduced);
+		motionObserver.disconnect();
 		unsubScene();
 		coordinator?.dispose();
 		window.removeEventListener("resize", onResize);
@@ -800,6 +775,13 @@ const dockTransform = $derived(
 		role="group"
 		aria-label="时刻氛围"
 	>
+		{#if onLaunchScreen}
+			<span
+				class="lg-phase-indicator"
+				aria-hidden="true"
+				style:transform={`translateX(calc(${scenePhaseIndex * 100}% + ${scenePhaseIndex * 3}px))`}
+			></span>
+		{/if}
 		{#each TIME_OPTIONS as option (option.id)}
 			<button
 				type="button"
@@ -819,8 +801,7 @@ const dockTransform = $derived(
 			profileName={siteMeta.profileName}
 			githubUrl={siteMeta.githubUrl}
 			{frame}
-			active={stage === "launch" && !launching}
-			{launching}
+			active={frame.heroOpacity > 0.15 && !frame.workspaceInteractive}
 			{reducedMotion}
 			{timeChoices}
 			onLaunch={handleLaunch}
@@ -832,6 +813,7 @@ const dockTransform = $derived(
 		<div
 			class="lg-workspace-chrome"
 			data-interactive={frame.workspaceInteractive ? "true" : "false"}
+			inert={!frame.workspaceInteractive}
 			style:opacity={frame.navOpacity.toFixed(4)}
 		>
 			<GlassNavigation
@@ -873,6 +855,7 @@ const dockTransform = $derived(
 			role="region"
 			aria-label="博客横向空间工作区"
 			aria-hidden={!frame.workspaceInteractive ? "true" : undefined}
+			inert={!frame.workspaceInteractive}
 			style:opacity={frame.workspaceOpacity.toFixed(4)}
 			style:transform={workspaceTransform}
 			style:pointer-events={frame.workspaceInteractive ? "auto" : "none"}
@@ -959,6 +942,7 @@ const dockTransform = $derived(
 		<div
 			class="lg-workspace-dock-wrap"
 			data-interactive={frame.workspaceInteractive ? "true" : "false"}
+			inert={!frame.workspaceInteractive}
 			style:opacity={frame.dockProgress.toFixed(4)}
 			style:transform={dockTransform}
 		>
@@ -1199,12 +1183,26 @@ const dockTransform = $derived(
 	}
 
 	.lg-launch-chips {
+		position: relative;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 3px;
 		padding: 4px;
 	}
 
+	.lg-phase-indicator {
+		position: absolute;
+		inset-block: 4px;
+		left: 4px;
+		width: calc((100% - 17px) / 4);
+		border: 1px solid var(--lg-firefly-glow);
+		border-radius: var(--lg-radius-pill);
+		background: var(--lg-firefly-soft);
+		pointer-events: none;
+		transition: transform var(--lg-dur-popover) var(--lg-ease-drawer);
+	}
+
 	.lg-launch-chips .lg-scene-chip {
+		position: relative;
 		min-height: 44px;
 		padding-inline: clamp(4px, 2vw, 14px);
 		border-radius: var(--lg-radius-pill);
@@ -1231,8 +1229,18 @@ const dockTransform = $derived(
 	}
 
 	.lg-launch-chips .lg-scene-chip[aria-pressed="true"] {
-		background: var(--lg-firefly-soft);
-		border-color: var(--lg-firefly-glow);
+		background: transparent;
+		border-color: transparent;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lg-phase-indicator {
+			transition: none;
+		}
+	}
+
+	:global(html.motion-reduced) .lg-phase-indicator {
+		transition: none;
 	}
 
 	.lg-scene-footer-actions {

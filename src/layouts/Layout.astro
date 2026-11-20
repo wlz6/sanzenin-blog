@@ -314,7 +314,19 @@ document.addEventListener("click", (event) => {
 	void copyPageLink();
 });
 
-document.addEventListener("swup:content:replace", syncSwupPageMetadata);
+function markPostEntrance() {
+	const container = document.getElementById("swup-container");
+	if (container?.dataset.currentPage === "post") {
+		container.dataset.postEntrance = "true";
+	}
+}
+
+function handleSwupContentReplace() {
+	syncSwupPageMetadata();
+	markPostEntrance();
+}
+
+document.addEventListener("swup:content:replace", handleSwupContentReplace);
 document.addEventListener("swup:page:view", syncSwupPageMetadata);
 
 interface SwupRuntime {
@@ -348,7 +360,6 @@ const bindSwup = () => {
 	win.swup.hooks.on("link:click", () => {
 		document.documentElement.style.setProperty("--content-delay", "0ms");
 	});
-	win.swup.hooks.on("content:replace", syncSwupPageMetadata);
 };
 
 if ((window as Window & { swup?: unknown }).swup) bindSwup();
@@ -356,4 +367,8 @@ else document.addEventListener("swup:enable", bindSwup, { once: true });
 
 syncSavedScenePhase();
 syncSwupPageMetadata();
+const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+if (navigation?.type === "navigate" && document.referrer.startsWith(`${location.origin}/`)) {
+	markPostEntrance();
+}
 </script>

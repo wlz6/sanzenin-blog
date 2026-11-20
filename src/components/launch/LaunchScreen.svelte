@@ -1,5 +1,4 @@
 <script lang="ts">
-import gsap from "gsap";
 import type { Snippet } from "svelte";
 import { GlassButton, GlassSurface } from "../glass/index.ts";
 import type { LaunchTimelineFrame } from "../../lib/liquid-glass/index.ts";
@@ -9,7 +8,6 @@ let {
 	githubUrl,
 	frame,
 	active = true,
-	launching = false,
 	reducedMotion = false,
 	onLaunch,
 	timeChoices,
@@ -18,13 +16,10 @@ let {
 	githubUrl: string;
 	frame: LaunchTimelineFrame;
 	active?: boolean;
-	launching?: boolean;
 	reducedMotion?: boolean;
 	onLaunch: () => void;
 	timeChoices: Snippet<[boolean]>;
 } = $props();
-
-let launchWrapEl = $state<HTMLDivElement>();
 
 const isHidden = $derived(!active && frame.heroOpacity <= 0.01);
 const heroTransform = $derived(
@@ -32,29 +27,6 @@ const heroTransform = $derived(
 		? "none"
 		: `translate3d(0, ${frame.heroTranslateY.toFixed(2)}px, 0) scale(${frame.heroScale.toFixed(4)})`,
 );
-const heroFilter = $derived(
-	!reducedMotion && frame.heroBlur > 0.05
-		? `blur(${frame.heroBlur.toFixed(2)}px)`
-		: "none",
-);
-
-function handleLaunchClick() {
-	if (launching) return;
-	if (launchWrapEl && !reducedMotion) {
-		gsap.killTweensOf(launchWrapEl);
-		gsap.fromTo(
-			launchWrapEl,
-			{ scale: 0.945 },
-			{
-				scale: 1.045,
-				duration: 0.16,
-				ease: "power2.out",
-				clearProps: "transform",
-			},
-		);
-	}
-	onLaunch();
-}
 </script>
 
 <section
@@ -63,17 +35,15 @@ function handleLaunchClick() {
 	aria-hidden={isHidden ? "true" : undefined}
 	inert={isHidden || !active}
 	style:opacity={frame.heroOpacity.toFixed(4)}
-	style:filter={heroFilter}
 >
 	<div class="lg-launch-center" style:transform={heroTransform}>
 		<h1 class="lg-launch-id lg-type-hero">{profileName}</h1>
-		<div class="lg-launch-action" bind:this={launchWrapEl}>
+		<div class="lg-launch-action">
 			<GlassButton
 				variant="launch-lens"
 				size="xl"
 				zone="forest"
-				disabled={launching}
-				onclick={handleLaunchClick}
+				onclick={onLaunch}
 				ariaLabel="进入博客空间"
 			>
 				Launch

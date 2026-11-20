@@ -899,7 +899,7 @@ export class FireflyLakeEngine {
 
 		const reduced = this.state.reducedMotion;
 		const targetTheme = TIME_THEMES[this.state.timeOfDay];
-		this.currentTheme = dampTimeParams(this.currentTheme, targetTheme, 1.55, dt);
+		this.currentTheme = dampTimeParams(this.currentTheme, targetTheme, 5.5, dt);
 
 		const eggSample = this.easterEggCtrl.update(dt, this.elapsedTotal);
 		const girlSample = this.girlCtrl.update(dt, eggSample.gazeUp);
@@ -912,7 +912,7 @@ export class FireflyLakeEngine {
 			this.wheelZoomTarget = 0;
 		}
 		this.wheelZoomCurrent += (this.wheelZoomTarget - this.wheelZoomCurrent) * dampCam;
-		this.transitionCurrent += (this.transitionTarget - this.transitionCurrent) * dampCam;
+		this.transitionCurrent += (this.transitionTarget - this.transitionCurrent) * (1 - Math.exp(-9.5 * dt));
 		this.blurCurrent += (this.blurTarget - this.blurCurrent) * dampOptical;
 		this.dimCurrent += (this.dimTarget - this.dimCurrent) * dampOptical;
 
@@ -922,7 +922,7 @@ export class FireflyLakeEngine {
 				: this.state.interactionMode === "workspace"
 					? 0.55
 					: 1.0;
-		const parallaxScale = (reduced ? 0.15 : 1.0) * modeParallaxFactor;
+		const parallaxScale = reduced ? 0 : modeParallaxFactor;
 		const breathX = reduced ? 0 : Math.sin(this.elapsedTotal * 0.28) * 0.032;
 		const breathY = reduced ? 0 : Math.cos(this.elapsedTotal * 0.21 + 0.6) * 0.018;
 
@@ -931,9 +931,9 @@ export class FireflyLakeEngine {
 			this.baseCamPos,
 			this.baseLookAt,
 			this.baseFov,
-			this.transitionCurrent,
-			focusZoom,
-			this.wheelZoomCurrent,
+			reduced ? 0 : this.transitionCurrent,
+			reduced ? 0 : focusZoom,
+			reduced ? 0 : this.wheelZoomCurrent,
 		);
 
 		const targetCamX = camTarget.posX + this.pointerNormX * 0.46 * parallaxScale + breathX;

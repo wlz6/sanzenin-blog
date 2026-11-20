@@ -328,6 +328,28 @@ onMount(() => {
 		margin-inline: auto;
 	}
 
+	:global([data-post-entrance="true"]) .lg-reading-grid {
+		animation: lg-reading-enter var(--lg-dur-modal) var(--lg-ease-out);
+	}
+
+	@keyframes lg-reading-enter {
+		from { opacity: 0.7; translate: 0 8px; }
+	}
+
+	@keyframes lg-reading-fade {
+		from { opacity: 0.7; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global([data-post-entrance="true"]) .lg-reading-grid {
+			animation: lg-reading-fade var(--lg-dur-dropdown) var(--lg-ease-out);
+		}
+	}
+
+	:global(html.motion-reduced [data-post-entrance="true"]) .lg-reading-grid {
+		animation: lg-reading-fade var(--lg-dur-dropdown) var(--lg-ease-out);
+	}
+
 	@media (min-width: 1200px) {
 		.lg-reading-grid.has-toc {
 			grid-template-columns: minmax(0, 820px) 260px;

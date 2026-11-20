@@ -318,9 +318,14 @@ const computedRel = $derived(
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.lg-btn[data-lg-btn-variant="launch-lens"]:is(:hover, :active):not(:disabled),
 		.lg-btn:hover:not(:disabled),
 		.lg-btn:active:not(:disabled) {
 			transform: none;
 		}
+	}
+
+	:global(html.motion-reduced) .lg-btn[data-lg-btn-variant="launch-lens"]:is(:hover, :active):not(:disabled) {
+		transform: none;
 	}
 </style>
