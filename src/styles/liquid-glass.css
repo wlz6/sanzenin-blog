@@ -1,0 +1,682 @@
+/* ==========================================================================
+ * 「萤火眠于湖 · When Fireflies Sleep on the Lake」
+ * Apple Liquid Glass (WWDC 2025) Web 光学设计系统与共享令牌
+ * ========================================================================== */
+
+:root {
+	color-scheme: dark;
+
+	/* 场景实测色板（锚定 wlz6/web_front 蓝调时刻与 ACES 调色输出） */
+	--lg-night-sky: #101d38;
+	--lg-night-abyss: #0b1528;
+	--lg-forest-teal: #173f43;
+	--lg-lake-shadow: #102f39;
+	--lg-mist-teal: #648b9c;
+	--lg-moonlight: #b9d8e8;
+	--lg-moon-core: #eef6fb;
+	--lg-moon-halo: #eaf5f5;
+	--lg-lake-reflect: #a8c2ca;
+	--lg-firefly-gold: #f6d77a;
+	--lg-lantern-amber: #f4c668;
+
+	/* Vibrancy 活力前景层级 */
+	--lg-ink-primary: #eef6fb;
+	--lg-ink-secondary: rgba(218, 236, 244, 0.86);
+	--lg-ink-tertiary: rgba(168, 194, 202, 0.78);
+	--lg-ink-quaternary: rgba(168, 194, 202, 0.52);
+	--lg-ink-accent: #b9d8e8;
+	--lg-ink-firefly: #f6d77a;
+
+	/* 语义强调与遮罩 */
+	--lg-accent-soft: rgba(185, 216, 232, 0.18);
+	--lg-accent-strong: rgba(185, 216, 232, 0.30);
+	--lg-firefly-soft: rgba(246, 215, 122, 0.18);
+	--lg-firefly-glow: rgba(246, 215, 122, 0.34);
+	--lg-separator: rgba(185, 216, 232, 0.18);
+	--lg-separator-strong: rgba(238, 246, 251, 0.28);
+	--lg-scrim-modal: rgba(8, 17, 32, 0.58);
+	--lg-scrim-reading: rgba(9, 19, 34, 0.46);
+	--lg-scrim-clear-dim: rgba(10, 22, 42, 0.34);
+
+	/* 语义状态色 */
+	--lg-status-ok: #7ad9b8;
+	--lg-status-warn: #f6d77a;
+	--lg-status-err: #f28b82;
+
+	/* 材质默认变量（Regular / blue_hour 基线） */
+	--lg-fill: rgba(16, 36, 52, 0.38);
+	--lg-fill-elevated: rgba(15, 32, 49, 0.50);
+	--lg-fill-solid: rgba(12, 23, 40, 0.94);
+	--lg-fill-reading: rgba(11, 22, 38, 0.90);
+	--lg-fill-reading-glass: rgba(11, 22, 38, 0.68);
+	--lg-fill-recessed: rgba(8, 19, 34, 0.44);
+	--lg-fill-recessed-focus: rgba(10, 24, 43, 0.58);
+	--lg-fill-note-embedded: rgba(185, 216, 232, 0.08);
+	--lg-fill-note-hover: rgba(185, 216, 232, 0.14);
+	--lg-fill-code: rgba(8, 17, 32, 0.95);
+	--lg-dimmer-bg: transparent;
+	--lg-blur: 24px;
+	--lg-blur-svg: 12px;
+	--lg-saturate: 160%;
+	--lg-brightness: 1.04;
+
+	/* 边缘方向性折射高光（左上月光 + 右下提灯回弹） */
+	--lg-rim-gradient: linear-gradient(
+		135deg,
+		rgba(238, 246, 251, 0.56) 0%,
+		rgba(185, 216, 232, 0.20) 38%,
+		rgba(100, 139, 156, 0.09) 68%,
+		rgba(246, 215, 122, 0.22) 100%
+	);
+	--lg-rim-lens: linear-gradient(
+		135deg,
+		rgba(238, 246, 251, 0.76) 0%,
+		rgba(185, 216, 232, 0.26) 40%,
+		rgba(185, 216, 232, 0.08) 65%,
+		rgba(246, 215, 122, 0.42) 100%
+	);
+	--lg-rim-focus: linear-gradient(
+		135deg,
+		rgba(246, 215, 122, 0.68) 0%,
+		rgba(238, 246, 251, 0.46) 46%,
+		rgba(185, 216, 232, 0.28) 100%
+	);
+	--lg-rim-reading: linear-gradient(
+		180deg,
+		rgba(185, 216, 232, 0.26) 0%,
+		rgba(185, 216, 232, 0.10) 100%
+	);
+	--lg-inner-bevel:
+		inset 0 1px 0.5px rgba(238, 246, 251, 0.34),
+		inset 0 -1px 1px rgba(6, 14, 28, 0.32);
+	--lg-inner-bevel-lens:
+		inset 0 1.5px 1px rgba(238, 246, 251, 0.52),
+		inset 0 -1.5px 2px rgba(246, 215, 122, 0.20);
+
+	/* 5 级海拔投影 */
+	--lg-elev-0: none;
+	--lg-elev-1: 0 6px 20px rgba(5, 13, 27, 0.20);
+	--lg-elev-2: 0 14px 36px rgba(5, 13, 27, 0.30);
+	--lg-elev-3: 0 22px 54px rgba(4, 11, 24, 0.40);
+	--lg-elev-4: 0 32px 84px rgba(3, 9, 20, 0.54);
+
+	/* 同心圆角体系：R_inner = max(8px, R_outer - padding) */
+	--lg-radius-window: 28px;
+	--lg-radius-panel: 24px;
+	--lg-radius-card: 16px;
+	--lg-radius-control: 12px;
+	--lg-radius-xs: 8px;
+	--lg-radius-pill: 9999px;
+
+	/* 动效曲线（精确值） */
+	--lg-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--lg-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--lg-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--lg-ease-camera: cubic-bezier(0.22, 1, 0.36, 1);
+
+	/* 动效时长 */
+	--lg-dur-press: 120ms;
+	--lg-dur-tooltip: 125ms;
+	--lg-dur-dropdown: 180ms;
+	--lg-dur-popover: 200ms;
+	--lg-dur-modal: 250ms;
+	--lg-dur-dock: 280ms;
+	--lg-dur-drawer: 420ms;
+
+	/* 排版族与光学字距 */
+	--lg-font-display: "Cormorant Garamond", "Noto Serif SC", Georgia, serif;
+	--lg-font-ui: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+	--lg-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+	--lg-text-hero: clamp(2.75rem, 6.2vw, 5.25rem);
+	--lg-text-h1: clamp(1.85rem, 3.2vw, 2.75rem);
+	--lg-text-h2: clamp(1.35rem, 2vw, 1.75rem);
+	--lg-text-h3: 1.125rem;
+	--lg-text-body: 1rem;
+	--lg-text-ui: 0.875rem;
+	--lg-text-micro: 0.75rem;
+
+	/* 场景视觉安全区锚点（桌面默认，移动端通过媒体查询同步） */
+	--lg-scene-focal-x: 66.7%;
+	--lg-scene-focal-y: 58%;
+	--lg-safe-top: env(safe-area-inset-top, 0px);
+	--lg-safe-bottom: env(safe-area-inset-bottom, 0px);
+	--lg-safe-left: env(safe-area-inset-left, 0px);
+	--lg-safe-right: env(safe-area-inset-right, 0px);
+}
+
+@media (max-width: 768px) {
+	:root {
+		--lg-scene-focal-x: 63.7%;
+		--lg-scene-focal-y: 58%;
+	}
+}
+
+/* ==========================================================================
+ * 场景四时段自适应调色（blue_hour | moonlit | midnight | dusk）
+ * ========================================================================== */
+
+html[data-scene-phase="blue_hour"] {
+	--lg-fill: rgba(16, 36, 52, 0.38);
+	--lg-fill-elevated: rgba(15, 32, 49, 0.50);
+	--lg-scrim-clear-dim: rgba(10, 22, 42, 0.32);
+	--lg-brightness: 1.04;
+}
+
+html[data-scene-phase="moonlit"] {
+	--lg-fill: rgba(18, 38, 60, 0.46);
+	--lg-fill-elevated: rgba(16, 34, 56, 0.58);
+	--lg-scrim-clear-dim: rgba(10, 22, 44, 0.35);
+	--lg-brightness: 1.02;
+	--lg-rim-gradient: linear-gradient(
+		135deg,
+		rgba(243, 249, 252, 0.68) 0%,
+		rgba(185, 216, 232, 0.28) 40%,
+		rgba(140, 178, 206, 0.12) 70%,
+		rgba(246, 215, 122, 0.18) 100%
+	);
+}
+
+html[data-scene-phase="midnight"] {
+	--lg-fill: rgba(10, 23, 41, 0.34);
+	--lg-fill-elevated: rgba(10, 21, 39, 0.46);
+	--lg-scrim-clear-dim: rgba(7, 16, 30, 0.24);
+	--lg-brightness: 1.06;
+	--lg-rim-gradient: linear-gradient(
+		135deg,
+		rgba(185, 216, 232, 0.46) 0%,
+		rgba(100, 139, 156, 0.18) 42%,
+		rgba(16, 47, 57, 0.12) 70%,
+		rgba(246, 215, 122, 0.32) 100%
+	);
+}
+
+html[data-scene-phase="dusk"] {
+	--lg-fill: rgba(42, 28, 38, 0.46);
+	--lg-fill-elevated: rgba(48, 32, 42, 0.58);
+	--lg-fill-reading: rgba(24, 18, 28, 0.90);
+	--lg-fill-reading-glass: rgba(24, 18, 28, 0.72);
+	--lg-scrim-clear-dim: rgba(30, 19, 28, 0.34);
+	--lg-brightness: 1.03;
+	--lg-rim-gradient: linear-gradient(
+		135deg,
+		rgba(255, 228, 196, 0.58) 0%,
+		rgba(246, 215, 122, 0.24) 40%,
+		rgba(180, 120, 118, 0.12) 68%,
+		rgba(255, 143, 71, 0.30) 100%
+	);
+}
+
+/* ==========================================================================
+ * 6 层液态玻璃光学表面基类（.lg-surface）
+ * ========================================================================== */
+
+.lg-surface {
+	position: relative;
+	isolation: isolate;
+	color: var(--lg-ink-primary);
+	border-radius: var(--lg-surface-radius, var(--lg-radius-panel));
+	box-shadow: var(--lg-surface-shadow, var(--lg-elev-2));
+	font-family: var(--lg-font-ui);
+}
+
+/* L1：局部暗化垫层（仅 Clear + moonlight 亮区启用，上限 <= 35%） */
+.lg-dimmer {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	border-radius: inherit;
+	background: var(--lg-dimmer-bg, transparent);
+	pointer-events: none;
+	transition: opacity var(--lg-dur-popover) var(--lg-ease-out);
+}
+
+/* L2：光学折射与模糊层（Safari/Firefox 基线声明，绝不含 url() 防止整条失效） */
+.lg-backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	border-radius: inherit;
+	overflow: hidden;
+	pointer-events: none;
+	backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate)) brightness(var(--lg-brightness));
+	-webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate)) brightness(var(--lg-brightness));
+}
+
+/* Chromium 专属 SVG 凸透镜折射增强层（由 capability.ts 探针安全激活） */
+html[data-lg-refract="svg"] .lg-surface[data-lg-filter="lens"] > .lg-backdrop {
+	backdrop-filter: blur(var(--lg-blur-svg, 6px)) url(#lg-refract-lens) saturate(var(--lg-saturate));
+}
+
+html[data-lg-refract="svg"] .lg-surface[data-lg-filter="pill"] > .lg-backdrop {
+	backdrop-filter: blur(var(--lg-blur-svg, 14px)) url(#lg-refract-pill) saturate(var(--lg-saturate));
+}
+
+html[data-lg-refract="svg"] .lg-surface[data-lg-filter="chrome"] > .lg-backdrop {
+	backdrop-filter: blur(var(--lg-blur-svg, 12px)) url(#lg-refract-chrome) saturate(var(--lg-saturate));
+}
+
+html[data-lg-refract="svg"] .lg-surface[data-lg-filter="panel"] > .lg-backdrop {
+	backdrop-filter: blur(var(--lg-blur-svg, 16px)) url(#lg-refract-panel) saturate(var(--lg-saturate));
+}
+
+/* L3：自适应着色填充层 */
+.lg-tint {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border-radius: inherit;
+	background: var(--lg-surface-fill, var(--lg-fill));
+	box-shadow: var(--lg-surface-bevel, var(--lg-inner-bevel));
+	pointer-events: none;
+	transition:
+		background-color var(--lg-dur-popover) var(--lg-ease-out),
+		opacity var(--lg-dur-popover) var(--lg-ease-out);
+}
+
+/* L4A：方向性 Fresnel 边缘高光描边 */
+.lg-rim {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	border-radius: inherit;
+	padding: var(--lg-rim-width, 1px);
+	background: var(--lg-surface-rim, var(--lg-rim-gradient));
+	-webkit-mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
+/* L4B：指针追光与按下内发光层（--lg-px/--lg-py 仅直接写入此叶子节点，零后代重算） */
+.lg-specular {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	border-radius: inherit;
+	pointer-events: none;
+	opacity: 0;
+	background: radial-gradient(
+		var(--lg-spec-radius, 190px) circle at var(--lg-px, 50%) var(--lg-py, 20%),
+		rgba(238, 246, 251, var(--lg-spec-core, 0.24)) 0%,
+		rgba(246, 215, 122, var(--lg-spec-warm, 0.08)) 42%,
+		transparent 72%
+	);
+	transition: opacity 180ms var(--lg-ease-out);
+}
+
+.lg-specular[data-lg-lit="hover"],
+.lg-specular[data-lg-lit="neighbor"] {
+	opacity: var(--lg-spec-opacity, 0.85);
+}
+
+.lg-specular[data-lg-lit="press"] {
+	--lg-spec-radius: 260px;
+	--lg-spec-core: 0.38;
+	--lg-spec-warm: 0.22;
+	opacity: 1;
+}
+
+/* L5：活力前景内容层 */
+.lg-content {
+	position: relative;
+	z-index: 3;
+	min-width: 0;
+}
+
+/* ==========================================================================
+ * 5 大玻璃材质变体（data-lg-variant）
+ * ========================================================================== */
+
+.lg-surface[data-lg-variant="floating-chrome"] {
+	--lg-surface-fill: var(--lg-fill);
+	--lg-blur: 24px;
+	--lg-blur-svg: 12px;
+	--lg-saturate: 160%;
+	--lg-surface-rim: var(--lg-rim-gradient);
+	--lg-surface-bevel: var(--lg-inner-bevel);
+}
+
+.lg-surface[data-lg-variant="launch-lens"] {
+	--lg-surface-fill:
+		radial-gradient(120% 100% at 50% 0%, rgba(238, 246, 251, 0.16), transparent 58%),
+		radial-gradient(90% 90% at 85% 100%, rgba(246, 215, 122, 0.16), transparent 64%),
+		rgba(16, 29, 56, 0.20);
+	--lg-blur: 14px;
+	--lg-blur-svg: 4px;
+	--lg-saturate: 175%;
+	--lg-surface-rim: var(--lg-rim-lens);
+	--lg-surface-bevel: var(--lg-inner-bevel-lens);
+	--lg-surface-radius: var(--lg-radius-pill);
+	--lg-surface-shadow: var(--lg-elev-3);
+}
+
+.lg-surface[data-lg-variant="dock-pill"] {
+	--lg-surface-fill: rgba(14, 32, 49, 0.44);
+	--lg-blur: 26px;
+	--lg-blur-svg: 14px;
+	--lg-saturate: 170%;
+	--lg-surface-rim: var(--lg-rim-gradient);
+	--lg-surface-bevel: var(--lg-inner-bevel);
+	--lg-surface-radius: var(--lg-radius-pill);
+	--lg-surface-shadow: var(--lg-elev-3);
+}
+
+.lg-surface[data-lg-variant="reading-surface"] {
+	--lg-surface-fill: var(--lg-fill-reading);
+	--lg-blur: 20px;
+	--lg-saturate: 125%;
+	--lg-brightness: 1;
+	--lg-surface-rim: var(--lg-rim-reading);
+	--lg-surface-bevel: inset 0 1px 0 rgba(238, 246, 251, 0.16);
+	--lg-surface-radius: var(--lg-radius-window);
+	--lg-surface-shadow: var(--lg-elev-4);
+}
+
+.lg-surface[data-lg-variant="reading-surface"].lg-post-glass {
+	--lg-fill-reading: var(--lg-fill-reading-glass);
+	--lg-surface-rim: var(--lg-rim-gradient);
+	--lg-surface-bevel: var(--lg-inner-bevel);
+	--lg-rim-width: 1.5px;
+}
+
+.lg-surface[data-lg-variant="reading-surface"] > .lg-specular {
+	display: none;
+}
+
+.lg-surface[data-lg-variant="note-card"] {
+	--lg-surface-fill: rgba(16, 40, 56, 0.32);
+	--lg-blur: 18px;
+	--lg-saturate: 145%;
+	--lg-surface-rim: var(--lg-rim-reading);
+	--lg-surface-bevel: inset 0 1px 0 rgba(238, 246, 251, 0.18);
+	--lg-surface-radius: var(--lg-radius-card);
+	--lg-surface-shadow: var(--lg-elev-1);
+}
+
+/* 嵌套在玻璃表面内部时严禁二次 backdrop-filter（单层玻璃原则） */
+.lg-surface[data-lg-embedded="true"] {
+	--lg-surface-fill: var(--lg-fill-note-embedded);
+	--lg-surface-shadow: none;
+}
+
+.lg-surface[data-lg-embedded="true"] > .lg-backdrop,
+.lg-surface[data-lg-embedded="true"] > .lg-dimmer {
+	display: none;
+}
+
+/* ==========================================================================
+ * 三大亮度分区自适应规则（data-lg-zone）
+ * ========================================================================== */
+
+.lg-surface[data-lg-zone="moonlight"][data-lg-variant="floating-chrome"],
+.lg-surface[data-lg-zone="moonlight"][data-lg-variant="dock-pill"] {
+	--lg-surface-fill: rgba(14, 28, 52, 0.62);
+	--lg-surface-shadow: 0 18px 46px rgba(8, 17, 34, 0.36);
+}
+
+.lg-surface[data-lg-zone="moonlight"][data-lg-variant="launch-lens"] {
+	--lg-dimmer-bg: var(--lg-scrim-clear-dim);
+}
+
+.lg-surface[data-lg-zone="forest"][data-lg-variant="floating-chrome"] {
+	--lg-surface-fill: rgba(16, 47, 57, 0.28);
+	--lg-surface-shadow: 0 14px 36px rgba(4, 11, 22, 0.26);
+}
+
+.lg-surface[data-lg-zone="forest"][data-lg-variant="launch-lens"] {
+	--lg-dimmer-bg: transparent;
+}
+
+.lg-surface[data-lg-zone="reading"] {
+	--lg-surface-fill: var(--lg-fill-reading);
+	--lg-dimmer-bg: transparent;
+}
+
+/* 焦点态与海拔层级 */
+.lg-surface[data-lg-focused="true"] {
+	--lg-surface-rim: var(--lg-rim-focus);
+}
+
+.lg-surface[data-lg-elevation="0"] { --lg-surface-shadow: var(--lg-elev-0); }
+.lg-surface[data-lg-elevation="1"] { --lg-surface-shadow: var(--lg-elev-1); }
+.lg-surface[data-lg-elevation="2"] { --lg-surface-shadow: var(--lg-elev-2); }
+.lg-surface[data-lg-elevation="3"] { --lg-surface-shadow: var(--lg-elev-3); }
+.lg-surface[data-lg-elevation="4"] { --lg-surface-shadow: var(--lg-elev-4); }
+
+/* ==========================================================================
+ * L6：滚动边缘消融遮罩（Scroll Edge Effects）
+ * ========================================================================== */
+
+.lg-scroll-edge {
+	--lg-edge-size: 40px;
+}
+
+.lg-scroll-edge[data-edge-top="true"][data-edge-bottom="false"] {
+	-webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--lg-edge-size));
+	mask-image: linear-gradient(to bottom, transparent 0, #000 var(--lg-edge-size));
+}
+
+.lg-scroll-edge[data-edge-top="false"][data-edge-bottom="true"] {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lg-edge-size)), transparent 100%);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lg-edge-size)), transparent 100%);
+}
+
+.lg-scroll-edge[data-edge-top="true"][data-edge-bottom="true"] {
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent 0,
+		#000 var(--lg-edge-size),
+		#000 calc(100% - var(--lg-edge-size)),
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent 0,
+		#000 var(--lg-edge-size),
+		#000 calc(100% - var(--lg-edge-size)),
+		transparent 100%
+	);
+}
+
+.lg-scroll-edge--hard {
+	--lg-edge-size: 16px;
+}
+
+/* ==========================================================================
+ * 控件触控基线与光学排版工具类（mobile-native）
+ * ========================================================================== */
+
+.lg-control {
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	transition:
+		transform var(--lg-dur-press) var(--lg-ease-out),
+		background-color 160ms var(--lg-ease-out),
+		border-color 160ms var(--lg-ease-out),
+		color 160ms var(--lg-ease-out);
+}
+
+.lg-control:active:not(:disabled) {
+	transform: scale(0.97);
+}
+
+.lg-control:focus-visible,
+.lg-surface:focus-visible,
+.lg-field:focus-visible {
+	outline: 2px solid var(--lg-firefly-gold);
+	outline-offset: 2px;
+}
+
+.lg-type-hero {
+	font-family: var(--lg-font-display);
+	font-size: var(--lg-text-hero);
+	font-weight: 400;
+	line-height: 0.98;
+	letter-spacing: -0.03em;
+	font-optical-sizing: auto;
+}
+
+.lg-type-h1 {
+	font-family: var(--lg-font-display);
+	font-size: var(--lg-text-h1);
+	font-weight: 500;
+	line-height: 1.12;
+	letter-spacing: -0.022em;
+	font-optical-sizing: auto;
+}
+
+.lg-type-h2 {
+	font-family: var(--lg-font-display);
+	font-size: var(--lg-text-h2);
+	font-weight: 500;
+	line-height: 1.22;
+	letter-spacing: -0.015em;
+}
+
+.lg-type-micro {
+	font-size: var(--lg-text-micro);
+	line-height: 1.35;
+	letter-spacing: 0.04em;
+}
+
+/* 触屏表单防 iOS 自动放大（最低 16px） */
+@media (pointer: coarse) {
+	.lg-field,
+	input.lg-field,
+	textarea.lg-field,
+	select.lg-field {
+		font-size: 16px;
+	}
+}
+
+/* 精细指针悬停门控 */
+@media (hover: hover) and (pointer: fine) {
+	.lg-surface[data-lg-embedded="true"][data-lg-interactive="true"]:hover {
+		--lg-surface-fill: var(--lg-fill-note-hover);
+	}
+}
+
+/* 移动端 GPU 帧预算：降低模糊半径并关闭指针高光 */
+html[data-lg-perf="lite"] .lg-surface {
+	--lg-blur: 18px;
+	--lg-saturate: 145%;
+}
+
+html[data-lg-perf="lite"] .lg-specular {
+	display: none;
+}
+
+/* ==========================================================================
+ * 无支持回退与三重无障碍系统偏好适配
+ * ========================================================================== */
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.lg-surface:not([data-lg-embedded="true"]) {
+		--lg-surface-fill: var(--lg-fill-solid);
+	}
+	.lg-post-glass {
+		--lg-fill-reading-glass: var(--lg-fill-solid);
+	}
+}
+
+/* 1. 减弱动态效果（含手动 html.motion-reduced） */
+@media (prefers-reduced-motion: reduce) {
+	.lg-surface,
+	.lg-control,
+	.lg-tint,
+	.lg-dimmer,
+	.lg-dock,
+	.lg-dock-lens,
+	.lg-nav-pill,
+	.lg-dialog,
+	.lg-popover,
+	.lg-dropdown,
+	.lg-tooltip {
+		transition-duration: 180ms !important;
+		transition-property: opacity, background-color, border-color, color !important;
+		animation: none !important;
+	}
+	.lg-control:active:not(:disabled) {
+		transform: none !important;
+	}
+	.lg-specular {
+		display: none !important;
+	}
+}
+
+html.motion-reduced .lg-surface,
+html.motion-reduced .lg-control,
+html.motion-reduced .lg-tint,
+html.motion-reduced .lg-dimmer,
+html.motion-reduced .lg-dock,
+html.motion-reduced .lg-dock-lens,
+html.motion-reduced .lg-nav-pill,
+html.motion-reduced .lg-dialog,
+html.motion-reduced .lg-popover,
+html.motion-reduced .lg-dropdown,
+html.motion-reduced .lg-tooltip {
+	transition-duration: 180ms !important;
+	transition-property: opacity, background-color, border-color, color !important;
+	animation: none !important;
+}
+
+html.motion-reduced .lg-specular {
+	display: none !important;
+}
+
+/* 2. 降低透明度（含手动 html[data-ew-glass="solid"]） */
+@media (prefers-reduced-transparency: reduce) {
+	.lg-backdrop {
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
+	}
+	.lg-surface:not([data-lg-embedded="true"]) {
+		--lg-surface-fill: var(--lg-fill-solid);
+	}
+	.lg-surface[data-lg-variant="reading-surface"] {
+		--lg-surface-fill: #0c1829;
+	}
+}
+
+html[data-ew-glass="solid"] .lg-backdrop {
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+}
+
+html[data-ew-glass="solid"] .lg-surface:not([data-lg-embedded="true"]) {
+	--lg-surface-fill: var(--lg-fill-solid);
+}
+
+html[data-ew-glass="solid"] .lg-surface[data-lg-variant="reading-surface"] {
+	--lg-surface-fill: #0c1829;
+}
+
+/* 3. 增强对比度 */
+@media (prefers-contrast: more) {
+	.lg-backdrop {
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
+	}
+	.lg-surface {
+		--lg-surface-fill: #0a1526;
+		--lg-rim-width: 1.5px;
+		--lg-surface-rim: linear-gradient(180deg, #b9d8e8, #b9d8e8);
+		color: #ffffff;
+	}
+	.lg-surface[data-lg-variant="reading-surface"].lg-post-glass {
+		--lg-fill-reading-glass: var(--lg-fill-solid);
+		--lg-surface-rim: linear-gradient(180deg, #b9d8e8, #b9d8e8);
+	}
+	.lg-surface[data-lg-focused="true"],
+	.lg-surface:focus-within {
+		--lg-surface-rim: linear-gradient(180deg, #f6d77a, #f6d77a);
+	}
+}

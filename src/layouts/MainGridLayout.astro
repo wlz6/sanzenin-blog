@@ -1,0 +1,199 @@
+---
+import { url } from "@utils/url-utils";
+import type { MarkdownHeading } from "astro";
+import { profileConfig, siteConfig } from "@/config";
+import type { SidebarPage } from "@/types/sidebarConfig";
+import ArticleReadingShell from "../components/article/ArticleReadingShell.svelte";
+import FireflyWorkspaceShell, {
+	type InitialBlogFilter,
+	type SpaceId,
+	type WorkspaceSiteMeta,
+} from "../components/workspace/FireflyWorkspaceShell.svelte";
+import Layout from "./Layout.astro";
+
+interface Props {
+	title?: string;
+	banner?: string;
+	ogImage?: string;
+	description?: string;
+	bannerDate?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	headings?: MarkdownHeading[];
+	postCategory?: string;
+	page?: SidebarPage;
+	hasComments?: boolean;
+}
+
+const {
+	title,
+	banner,
+	ogImage,
+	description,
+	bannerDate,
+	lang,
+	setOGTypeArticle,
+	headings = [],
+	postCategory,
+	page,
+	hasComments,
+} = Astro.props;
+
+const homeHref = url("/");
+const rawPathname = Astro.url.pathname.startsWith(homeHref)
+	? `/${Astro.url.pathname.slice(homeHref.length)}`
+	: Astro.url.pathname;
+const cleanPath = rawPathname.replace(/\/+$/, "") || "/";
+
+const siteMeta: WorkspaceSiteMeta = {
+	siteTitle: siteConfig.title,
+	profileName: profileConfig.name,
+	profileBio: profileConfig.bio ?? "",
+	githubUrl:
+		profileConfig.links.find((link) => link.name.toLowerCase().includes("github"))?.url ??
+		"",
+};
+
+let viewKind: "workspace" | "article" | "page" = "page";
+let initialStage: "launch" | "workspace" = "workspace";
+let initialSpace: SpaceId = "blog";
+let initialBlogFilter: InitialBlogFilter = {};
+let postSlug: string | undefined;
+
+if (cleanPath === "/") {
+	viewKind = "workspace";
+	initialStage = "launch";
+	initialSpace = "blog";
+} else if (
+	cleanPath === "/blog" ||
+	cleanPath === "/archive" ||
+	cleanPath === "/categories" ||
+	cleanPath === "/tags"
+) {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "blog";
+} else if (/^\/\d+$/.test(cleanPath)) {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "blog";
+	initialBlogFilter = { page: Math.max(1, Number.parseInt(cleanPath.slice(1), 10)) };
+} else if (cleanPath === "/projects" || page === "projects") {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "projects";
+} else if (cleanPath === "/gallery") {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "gallery";
+} else if (cleanPath === "/about" || page === "about") {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "about";
+} else if (cleanPath === "/guestbook") {
+	viewKind = "workspace";
+	initialStage = "workspace";
+	initialSpace = "guestbook";
+} else if (page === "post" || cleanPath.startsWith("/posts/")) {
+	viewKind = "article";
+	const rawSlug = cleanPath.startsWith("/posts/")
+		? cleanPath.slice("/posts/".length)
+		: cleanPath.slice(1);
+	postSlug = decodeURIComponent(rawSlug);
+}
+
+const etherealMode = viewKind === "workspace" ? "spatial" : "reading";
+const interactionMode =
+	viewKind === "workspace"
+		? initialStage === "launch"
+			? "launch"
+			: "workspace"
+		: "reading";
+---
+
+<Layout
+	{title}
+	{banner}
+	{ogImage}
+	{description}
+	{lang}
+	{setOGTypeArticle}
+	{page}
+	initialEtherealMode={etherealMode}
+	initialInteractionMode={interactionMode}
+>
+	<slot slot="head" name="head" />
+	<main
+		id="swup-container"
+		data-ethereal-mode={etherealMode}
+		data-current-post-category={postCategory || ""}
+		data-current-page={page || ""}
+		data-has-comments={hasComments ? "true" : "false"}
+		data-banner-title={title || ""}
+		data-banner-description={description || ""}
+		data-banner-date={bannerDate || ""}
+		class="lg-main-container"
+	>
+		{viewKind === "workspace" ? (
+			<>
+				<FireflyWorkspaceShell
+					{siteMeta}
+					{initialStage}
+					{initialSpace}
+					{initialBlogFilter}
+					client:load
+				/>
+				<noscript>
+					<div class="lg-noscript">
+						<h1>{siteMeta.profileName}</h1>
+						<p>启用 JavaScript 可体验完整的「萤火眠于湖」液态玻璃空间。</p>
+						<p>
+							<a href={url("/rss.xml")}>订阅 RSS</a>
+							{siteMeta.githubUrl && (
+								<>
+									{" · "}
+									<a href={siteMeta.githubUrl} rel="noopener noreferrer">GitHub</a>
+								</>
+							)}
+						</p>
+					</div>
+				</noscript>
+			</>
+		) : (
+			<ArticleReadingShell
+				{siteMeta}
+				{title}
+				{postCategory}
+				{headings}
+				{postSlug}
+				isPost={viewKind === "article"}
+				client:load
+			>
+				<slot />
+			</ArticleReadingShell>
+		)}
+	</main>
+	<div id="toc" hidden aria-hidden="true"></div>
+</Layout>
+
+<style is:global>
+	.lg-main-container {
+		position: relative;
+		z-index: 20;
+		min-height: 100dvh;
+	}
+	.lg-noscript {
+		position: relative;
+		z-index: 30;
+		margin: 6rem auto 2rem;
+		width: min(36rem, 90%);
+		padding: 24px;
+		border-radius: 20px;
+		background: rgba(11, 22, 38, 0.92);
+		color: #eef6fb;
+	}
+	.lg-noscript a {
+		color: #f6d77a;
+		text-decoration: underline;
+	}
+</style>

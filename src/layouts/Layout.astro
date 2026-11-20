@@ -9,29 +9,25 @@ import {
 	expressiveCodeConfig,
 	profileConfig,
 	resolvedFontOptions,
-	resolveTextureOptions,
 	resolveUmamiOptions,
 	siteConfig,
 	umamiConfig,
 } from "@/config";
 import type { SidebarPage } from "@/types/sidebarConfig";
-import {
-	AUTO_MODE,
-	BANNER_HEIGHT,
-	BANNER_HEIGHT_EXTEND,
-	BANNER_HEIGHT_HOME,
-	DARK_MODE,
-	DEFAULT_THEME,
-	LIGHT_MODE,
-	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
-} from "@constants/constants";
 import { defaultFavicons } from "@constants/icon";
 import type { BannerSourceValue, Favicon } from "@/types/config";
 import { createFontRoleStyle } from "@utils/font-options";
 import { resolvePageWidth } from "@utils/responsive-utils";
+import "@fontsource/cormorant-garamond/400.css";
+import "@fontsource/cormorant-garamond/500.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
 import "@/styles/main.css";
 import "@/styles/font-faces.css";
-import textureStyles from "@/styles/textures.css?raw";
+import "../styles/ethereal.css";
+import GlassSvgDefs from "../components/glass/GlassSvgDefs.svelte";
+import FireflyLakeBackground from "../components/scene/FireflyLakeBackground.svelte";
 
 interface Props {
 	title?: string;
@@ -41,27 +37,51 @@ interface Props {
 	lang?: string;
 	setOGTypeArticle?: boolean;
 	page?: SidebarPage;
+	initialEtherealMode?: "spatial" | "reading";
+	initialInteractionMode?: "launch" | "workspace" | "reading";
 }
 
-let { title, banner, ogImage, description, lang, setOGTypeArticle, page } =
-	Astro.props;
+let {
+	title,
+	banner,
+	ogImage,
+	description,
+	lang,
+	setOGTypeArticle,
+	page,
+	initialEtherealMode,
+	initialInteractionMode,
+} = Astro.props;
 
 const initialPage =
 	page ?? (pathsEqual(Astro.url.pathname, url("/")) ? "home" : undefined);
+const cleanPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const isWorkspacePath =
+	cleanPath === "/" ||
+	cleanPath === "/blog" ||
+	cleanPath === "/archive" ||
+	cleanPath === "/categories" ||
+	cleanPath === "/tags" ||
+	cleanPath === "/projects" ||
+	cleanPath === "/gallery" ||
+	cleanPath === "/about" ||
+	cleanPath === "/guestbook" ||
+	/^\/\d+$/.test(cleanPath);
+
+const resolvedEtherealMode =
+	initialEtherealMode ?? (isWorkspacePath ? "spatial" : "reading");
+const resolvedInteractionMode =
+	initialInteractionMode ??
+	(cleanPath === "/" ? "launch" : isWorkspacePath ? "workspace" : "reading");
 
 const canonicalUrl = Astro.site
 	? new URL(Astro.url.pathname + Astro.url.search, Astro.site)
 	: Astro.url;
+
 function getFirstBannerImage(source: BannerSourceValue | undefined): string {
 	if (!source) return "";
 	if (Array.isArray(source)) return source[0] || "";
 	return source.light[0] || source.dark[0] || "";
-}
-
-function hasBannerImages(source: BannerSourceValue | undefined): boolean {
-	if (!source) return false;
-	if (Array.isArray(source)) return source.length > 0;
-	return source.light.length > 0 || source.dark.length > 0;
 }
 
 const defaultSocialImage =
@@ -78,14 +98,7 @@ const lightTheme =
 	expressiveCodeConfig.lightTheme ?? expressiveCodeConfig.theme;
 const darkTheme = expressiveCodeConfig.darkTheme ?? expressiveCodeConfig.theme;
 const defaultWallpaperMode = siteConfig.wallpaperMode.defaultMode;
-const textureOptions = resolveTextureOptions();
-const defaultTexturePreset = textureOptions.defaultPreset;
-const defaultTextureOpacity = textureOptions.defaultOpacity;
-const textureEnabled = textureOptions.enable;
 const umamiOptions = resolveUmamiOptions(umamiConfig);
-
-const hasDesktopBanner = hasBannerImages(siteConfig.banner.src.desktop);
-const hasMobileBanner = hasBannerImages(siteConfig.banner.src.mobile);
 
 let pageTitle: string;
 if (title) {
@@ -112,21 +125,31 @@ const hasMonoFont =
 ---
 
 <!DOCTYPE html>
-<html lang={siteLang} class="bg-[var(--page-bg)] transition text-[14px] md:text-[16px]">
+<html
+	lang={siteLang}
+	data-ethereal-mode={resolvedEtherealMode}
+	data-scene-phase="blue_hour"
+	data-ew-theme="dusk-station"
+	data-theme={darkTheme}
+	data-light-code-theme={lightTheme}
+	data-dark-code-theme={darkTheme}
+	class="dark transition text-[14px] md:text-[16px]"
+	style={`--hue: ${configHue}`}
+>
 	<head>
 		<style is:inline>@layer properties, theme, base, components, utilities;</style>
 
 		<title>{pageTitle}</title>
 
 		<meta charset="UTF-8" />
-		<meta name="description" content={description || pageTitle}>
-		<meta name="author" content={profileConfig.name}>
-		<link rel="canonical" href={canonicalUrl.href}>
+		<meta name="description" content={description || pageTitle} />
+		<meta name="author" content={profileConfig.name} />
+		<link rel="canonical" href={canonicalUrl.href} />
 
-		<meta property="og:site_name" content={siteConfig.title}>
-		<meta property="og:url" content={canonicalUrl}>
-		<meta property="og:title" content={pageTitle}>
-		<meta property="og:description" content={description || pageTitle}>
+		<meta property="og:site_name" content={siteConfig.title} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description || pageTitle} />
 		{absoluteOgImage && <meta property="og:image" content={absoluteOgImage} />}
 		{setOGTypeArticle ? (
 			<meta property="og:type" content="article" />
@@ -134,107 +157,95 @@ const hasMonoFont =
 			<meta property="og:type" content="website" />
 		)}
 
-		<meta name="twitter:card" content={absoluteOgImage ? "summary_large_image" : "summary"}>
-		<meta property="twitter:url" content={canonicalUrl}>
-		<meta property="twitter:title" content={pageTitle}>
-		<meta property="twitter:description" content={description || pageTitle}>
+		<meta name="twitter:card" content={absoluteOgImage ? "summary_large_image" : "summary"} />
+		<meta property="twitter:url" content={canonicalUrl} />
+		<meta property="twitter:title" content={pageTitle} />
+		<meta property="twitter:description" content={description || pageTitle} />
 		{absoluteOgImage && <meta property="twitter:image" content={absoluteOgImage} />}
 
-		<meta name="viewport" content="width=device-width" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+		/>
+		<meta name="theme-color" content="#101D38" />
+		<meta name="color-scheme" content="dark" />
 		<meta name="generator" content={Astro.generator} />
 		{fontRoleStyle && <style is:inline set:html={fontRoleStyle}></style>}
-		{textureEnabled && <style is:inline set:html={textureStyles}></style>}
-		{hasBodyFont && <Font cssVariable={resolvedFontOptions.roles.body.cssVariable as never} preload={resolvedFontOptions.roles.body.preload} />}
-		{hasCjkFont && <Font cssVariable={resolvedFontOptions.roles.cjk.cssVariable as never} preload={resolvedFontOptions.roles.cjk.preload} />}
-		{hasMonoFont && <Font cssVariable={resolvedFontOptions.roles.mono.cssVariable as never} preload={resolvedFontOptions.roles.mono.preload} />}
-		{umamiOptions?.websiteId && umamiOptions.scriptUrl && (
-			<script is:inline async src={umamiOptions.scriptUrl} data-website-id={umamiOptions.websiteId} data-auto-track="true"></script>
+		{hasBodyFont && (
+			<Font
+				cssVariable={resolvedFontOptions.roles.body.cssVariable as never}
+				preload={resolvedFontOptions.roles.body.preload}
+			/>
 		)}
-				{favicons.map(favicon => (
-			<link rel="icon"
-				href={favicon.src.startsWith('/') ? url(favicon.src) : favicon.src}
+		{hasCjkFont && (
+			<Font
+				cssVariable={resolvedFontOptions.roles.cjk.cssVariable as never}
+				preload={resolvedFontOptions.roles.cjk.preload}
+			/>
+		)}
+		{hasMonoFont && (
+			<Font
+				cssVariable={resolvedFontOptions.roles.mono.cssVariable as never}
+				preload={resolvedFontOptions.roles.mono.preload}
+			/>
+		)}
+		{umamiOptions?.websiteId && umamiOptions.scriptUrl && (
+			<script
+				is:inline
+				async
+				src={umamiOptions.scriptUrl}
+				data-website-id={umamiOptions.websiteId}
+				data-auto-track="true"
+			></script>
+		)}
+		{favicons.map((favicon) => (
+			<link
+				rel="icon"
+				href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src}
 				sizes={favicon.sizes}
 				media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
 			/>
 		))}
 
-		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, configHue, lightTheme, darkTheme, defaultWallpaperMode, defaultTexturePreset, defaultTextureOpacity, textureEnabled}}>
-			const theme = localStorage.getItem('theme') || DEFAULT_THEME;
-			let isDark = false;
-			switch (theme) {
-				case LIGHT_MODE:
-					document.documentElement.classList.remove('dark');
-					break
-				case DARK_MODE:
-					document.documentElement.classList.add('dark');
-					isDark = true;
-					break
-				case AUTO_MODE:
-					if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-						document.documentElement.classList.add('dark');
-						isDark = true;
-					} else {
-						document.documentElement.classList.remove('dark');
-					}
-			}
+		<script is:inline define:vars={{ defaultWallpaperMode, darkTheme }}>
+			const root = document.documentElement;
+			root.dataset.wallpaperMode = defaultWallpaperMode;
+			root.classList.add("dark");
+			root.setAttribute("data-theme", darkTheme);
 
-			document.documentElement.setAttribute('data-theme', isDark ? darkTheme : lightTheme);
-			const hue = localStorage.getItem('hue') || configHue;
-			document.documentElement.style.setProperty('--hue', hue);
-			if (localStorage.getItem('mc-motion') === 'reduced') {
-				document.documentElement.classList.add('motion-reduced');
-			}
-			const storedWallpaperMode = localStorage.getItem('wallpaper-mode');
-			const wallpaperMode = storedWallpaperMode === 'banner' || storedWallpaperMode === 'none'
-				? storedWallpaperMode
-				: defaultWallpaperMode;
-			document.documentElement.dataset.wallpaperMode = wallpaperMode;
-
-			if (textureEnabled) {
-				const storedTexturePreset = localStorage.getItem('texture-preset');
-				const validPresets = ['none', 'starlight', 'cyber-dots', 'topography', 'geometric', 'sakura'];
-				const texturePreset = storedTexturePreset && validPresets.includes(storedTexturePreset)
-					? storedTexturePreset
-					: defaultTexturePreset;
-				document.documentElement.dataset.texturePreset = texturePreset;
-				const storedTextureOpacity = localStorage.getItem('texture-opacity');
-				const textureOpacity = storedTextureOpacity ? parseFloat(storedTextureOpacity) : defaultTextureOpacity;
-				if (!isNaN(textureOpacity)) {
-					document.documentElement.style.setProperty('--texture-opacity', String(textureOpacity));
+			const validPhases = new Set(["blue_hour", "moonlit", "midnight", "dusk"]);
+			if (typeof localStorage !== "undefined") {
+				const savedPhase = localStorage.getItem("firefly:scene-phase");
+				if (savedPhase && validPhases.has(savedPhase)) {
+					root.dataset.scenePhase = savedPhase;
+				}
+				if (localStorage.getItem("mc-motion") === "reduced") {
+					root.classList.add("motion-reduced");
+				}
+				if (localStorage.getItem("ethereal:glass-mode") === "solid") {
+					root.dataset.ewGlass = "solid";
 				}
 			}
-
-			let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
-			offset = offset - offset % 4;
-			document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
 		</script>
 		<style define:vars={{
 			configHue,
-			'page-width': resolvePageWidth(),
+			"page-width": resolvePageWidth(),
 		}}></style>
 
 		<slot name="head"></slot>
-		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
-		<link rel="alternate" type="application/atom+xml" title={profileConfig.name} href={`${Astro.site}atom.xml`}/>
+		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`} />
+		<link rel="alternate" type="application/atom+xml" title={profileConfig.name} href={`${Astro.site}atom.xml`} />
 	</head>
 	<body
-		class="min-h-screen transition"
+		class="min-h-screen"
 		data-current-page={initialPage}
-		data-banner-visible="false"
-		data-banner-layout="compact"
-		data-banner-top-app-bar="false"
-		data-banner-has-desktop={String(hasDesktopBanner)}
-		data-banner-has-mobile={String(hasMobileBanner)}
 	>
+		<!-- 持久挂载于 Swup 替换容器之外：全局 SVG 折射滤镜与「萤火眠于湖」WebGL 交互场景 -->
+		<GlassSvgDefs client:load />
+		<FireflyLakeBackground interactionMode={resolvedInteractionMode} client:load />
+
 		<ConfigCarrier></ConfigCarrier>
 		{umamiOptions && <UmamiRuntime />}
-		{textureEnabled && (
-			<div
-				id="m3e-texture-canvas"
-				class="fixed inset-0 pointer-events-none -z-20 transition-opacity duration-500"
-				aria-hidden="true"
-			></div>
-		)}
 		<Snackbar client:only="svelte"></Snackbar>
 		<slot />
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
@@ -245,148 +256,104 @@ const hasMonoFont =
 @import "../../node_modules/shirones/src/styles/variables.styl"
 </style>
 
-<style is:global define:vars={{
-	'banner-height-home': `${BANNER_HEIGHT_HOME}vh`,
-	'banner-height': `${BANNER_HEIGHT}vh`,
-	'banner-panel-overlap': `${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem`,
-}}>
-@reference "../../node_modules/shirones/src/styles/main.css";
-	@layer components {
-		:root {
-			--banner-stage-height: var(--banner-height-home);
-			--banner-content-top: calc(var(--banner-stage-height) - var(--banner-panel-overlap));
-		}
-		#main-layout {
-			top: 5.5rem;
-			transition: top var(--m3e-duration-long) var(--m3e-easing-standard);
-		}
-		body[data-banner-layout="banner"] #main-layout { top: var(--banner-content-top); }
-		body[data-banner-layout="banner"] #top-row { height: calc(var(--banner-stage-height) - 4.5rem); }
-		.navbar-hidden { opacity: 0; transform: translateY(-4rem); }
-	}
-	@media (min-width: 1024px) {
-		html[data-wallpaper-mode="banner"] body[data-banner-has-desktop="true"] #main-layout { top: var(--banner-content-top); }
-		html[data-wallpaper-mode="banner"] body[data-banner-has-desktop="true"] #top-row { height: calc(var(--banner-stage-height) - 4.5rem); }
-	}
-	@media (max-width: 1023.98px) {
-		:root { --banner-stage-height: max(70vh, 28rem); }
-		@media (max-width: 479.98px) { :root { --banner-panel-overlap: var(--m3e-space-2); } }
-		@media (min-width: 480px) and (max-width: 767.98px) { :root { --banner-panel-overlap: var(--m3e-space-2); } }
-		html[data-wallpaper-mode="banner"] body[data-current-page="home"][data-banner-has-mobile="true"] #main-layout { top: var(--banner-content-top); }
-		html[data-wallpaper-mode="banner"] body[data-current-page="home"][data-banner-has-mobile="true"] #top-row { height: calc(var(--banner-stage-height) - 4.5rem); }
-		body[data-banner-layout="compact"] #top-row { height: auto; }
-	}
-	@media (min-width: 480px) and (max-width: 767.98px) { :root { --banner-stage-height: max(75vh, 31.25rem); } }
-	@media (min-width: 768px) and (max-width: 1023.98px) { :root { --banner-stage-height: max(70vh, 31.25rem); } }
-</style>
-
 <script>
 import { initLastUpdatedNotices } from "@utils/last-updated-notice";
-import {getHue, getStoredTheme, setHue, setTheme} from "@utils/setting-utils";
-import { WALLPAPER_MODE_CHANGE_EVENT, BANNER_HEIGHT, BANNER_HEIGHT_EXTEND } from "@constants/constants";
+import { applyCurrentScheme } from "@utils/theme-utils";
 import { copyPageLink } from "@utils/copy-page-link";
+import { bindFancyboxRuntime } from "@utils/fancybox-runtime";
+import { sceneBridge, type TimeOfDay } from "../scene/scene-bridge";
 
-function setClickOutsideToClose(panel: string, ignores: string[]) {
-	document.addEventListener('click', event => {
-		const panelDom = document.getElementById(panel);
-		const target = event.target;
-		if (!(target instanceof Node)) return;
-		for (const ignore of ignores) {
-			const element = document.getElementById(ignore);
-			if (element === target || element?.contains(target)) return;
-		}
-		if (panelDom) panelDom.classList.add('float-panel-closed');
-	});
+const VALID_PHASES = new Set<TimeOfDay>(["blue_hour", "moonlit", "midnight", "dusk"]);
+
+function isWorkspaceOrLaunchPath(pathname: string): boolean {
+	const clean = pathname.replace(/\/+$/, "") || "/";
+	return (
+		clean === "/" ||
+		clean === "/blog" ||
+		clean === "/archive" ||
+		clean === "/categories" ||
+		clean === "/tags" ||
+		clean === "/projects" ||
+		clean === "/gallery" ||
+		clean === "/about" ||
+		clean === "/guestbook" ||
+		/^\/\d+$/.test(clean)
+	);
 }
-setClickOutsideToClose('display-setting', ['display-setting', 'display-settings-switch']);
-setClickOutsideToClose('search-panel', ['search-panel', 'search-bar', 'search-switch']);
 
-function loadTheme() { setTheme(getStoredTheme()); }
-function loadHue() { setHue(getHue()); }
-
-function init() {
-	loadTheme();
-	loadHue();
+function syncMaterialScheme() {
+	document.documentElement.classList.add("dark");
+	applyCurrentScheme();
 }
-init();
-initLastUpdatedNotices();
 
-document.addEventListener("click", async (event) => {
+function syncSavedScenePhase() {
+	const saved = localStorage.getItem("firefly:scene-phase") as TimeOfDay | null;
+	if (saved && VALID_PHASES.has(saved)) {
+		document.documentElement.dataset.scenePhase = saved;
+		sceneBridge.setTimeOfDay(saved);
+	}
+}
+
+function syncSwupPageMetadata() {
+	const root = document.documentElement;
+	const container = document.getElementById("swup-container");
+	if (container) {
+		const page = container.dataset.currentPage || "";
+		const etherealMode = container.dataset.etherealMode === "spatial" ? "spatial" : "reading";
+		document.body.dataset.currentPage = page;
+		root.dataset.etherealMode = etherealMode;
+	}
+	syncMaterialScheme();
+	initLastUpdatedNotices();
+	bindFancyboxRuntime();
+}
+
+document.addEventListener("click", (event) => {
 	const target = event.target;
 	if (!(target instanceof Element) || !target.closest("#copy-post-link")) return;
-
 	void copyPageLink();
 });
 
-const setup = () => {
-	if (!window.swup || window.__shironeNavigationBound) return;
-	window.__shironeNavigationBound = true;
-	let scrollStarted = false;
-	let visitActive = false;
-	let finishTimer: number | undefined;
-	function finishVisit() {
-		if (!visitActive) return;
-		visitActive = false;
-		window.clearTimeout(finishTimer);
-		finishTimer = window.setTimeout(() => {
-			document.getElementById('page-height-extend')?.classList.add('hidden');
-		}, 200);
-	}
-	window.swup.hooks.on('link:click', () => document.documentElement.style.setProperty('--content-delay', '0ms'));
-	window.swup.hooks.on('visit:start', () => {
-		window.clearTimeout(finishTimer);
-		visitActive = true;
-		scrollStarted = false;
-		document.getElementById('page-height-extend')?.classList.remove('hidden');
-	});
-	window.swup.hooks.on('visit:end', () => { if (!scrollStarted) finishVisit(); });
-	window.swup.hooks.on('visit:abort', finishVisit);
-	if (window.swup.hooks.exists('scroll:end')) {
-		window.swup.hooks.on('scroll:start', () => { if (visitActive) scrollStarted = true; });
-		window.swup.hooks.on('scroll:end', finishVisit);
-	}
-};
-if (window.swup?.hooks) setup();
-else document.addEventListener('swup:enable', setup, { once: true });
+document.addEventListener("swup:content:replace", syncSwupPageMetadata);
+document.addEventListener("swup:page:view", syncSwupPageMetadata);
 
-const backToTopBtn = document.getElementById('back-to-top-btn');
-function scrollFunction() {
-	const scrollTop = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
-	const backToTopThreshold = window.innerHeight * (BANNER_HEIGHT / 100);
-	backToTopBtn?.classList.toggle('hide', scrollTop <= backToTopThreshold);
-	const bannerVisible = document.body.dataset.bannerVisible === 'true';
-	const navbar = document.getElementById('navbar');
-	const bannerStage = document.getElementById('banner-wrapper');
-	const bannerBottom = bannerStage?.getBoundingClientRect().height ?? 0;
-	const overBanner = bannerVisible && scrollTop < Math.max(0, bannerBottom - 64);
-	document.body.dataset.bannerScrolled = String(!overBanner);
-	navbar?.classList.toggle('top-app-bar--transparent', overBanner);
-	navbar?.classList.toggle('top-app-bar--scrolled', scrollTop > 16);
+interface SwupRuntime {
+	options: {
+		skipPopStateHandling: (event: PopStateEvent) => boolean;
+	};
+	hooks: {
+		on: (event: string, cb: () => void) => void;
+	};
 }
-window.addEventListener('scroll', scrollFunction, { passive: true });
-window.addEventListener('resize', () => {
-	let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
-	offset = offset - offset % 4;
-	document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
-	scrollFunction();
-});
-new MutationObserver(scrollFunction).observe(document.body, { attributes: true, attributeFilter: ['data-banner-visible', 'data-banner-layout'] });
-window.addEventListener(WALLPAPER_MODE_CHANGE_EVENT, () => requestAnimationFrame(scrollFunction));
-document.addEventListener('swup:page:view', scrollFunction);
-scrollFunction();
-</script>
 
-<script>
-import { bindFancyboxRuntime } from "@utils/fancybox-runtime";
-import { applyStoredLayoutMode } from "@utils/layout-mode";
+const bindSwup = () => {
+	const win = window as Window & {
+		swup?: SwupRuntime;
+		__fireflySwupBound?: boolean;
+	};
+	if (!win.swup?.hooks || win.__fireflySwupBound) return;
+	win.__fireflySwupBound = true;
 
-bindFancyboxRuntime();
+	// Launch <-> Workspace 同壳体历史导航由 FireflyWorkspaceShell 平滑反向动画接管；
+	// Workspace <-> 文章详情跨壳体导航由 Swup 无刷新替换 <main>，WebGL 持久不中断。
+	win.swup.options.skipPopStateHandling = (event: PopStateEvent) => {
+		const hasWorkspaceRoot = Boolean(document.getElementById("firefly-workspace-root"));
+		if (hasWorkspaceRoot && isWorkspaceOrLaunchPath(window.location.pathname)) {
+			return true;
+		}
+		const state = event.state as { source?: string } | null;
+		return state?.source !== "swup";
+	};
 
-const setup = () => {
-	window.swup.hooks.on("content:replace", () => {
-		applyStoredLayoutMode(document.getElementById("post-list"));
+	win.swup.hooks.on("link:click", () => {
+		document.documentElement.style.setProperty("--content-delay", "0ms");
 	});
+	win.swup.hooks.on("content:replace", syncSwupPageMetadata);
 };
-if (window.swup) setup();
-else document.addEventListener("swup:enable", setup);
+
+if ((window as Window & { swup?: unknown }).swup) bindSwup();
+else document.addEventListener("swup:enable", bindSwup, { once: true });
+
+syncSavedScenePhase();
+syncSwupPageMetadata();
 </script>

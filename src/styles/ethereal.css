@@ -1,0 +1,404 @@
+@import "./liquid-glass.css";
+
+:root {
+	--ew-font-display: var(--lg-font-display);
+	--ew-font-ui: var(--lg-font-ui);
+
+	--ew-safe-top: var(--lg-safe-top);
+	--ew-safe-bottom: var(--lg-safe-bottom);
+	--ew-safe-left: var(--lg-safe-left);
+	--ew-safe-right: var(--lg-safe-right);
+
+	--ew-ease-out: var(--lg-ease-out);
+	--ew-ease-drawer: var(--lg-ease-drawer);
+}
+
+:root,
+html[data-ew-theme="dusk-station"] {
+	color-scheme: dark;
+	--ew-scene-bg: var(--lg-night-sky);
+	--ew-scene-twilight: var(--lg-night-sky);
+	--ew-ink-primary: var(--lg-ink-primary);
+	--ew-ink-secondary: var(--lg-ink-secondary);
+	--ew-ink-muted: var(--lg-ink-tertiary);
+	--ew-ink-warm: var(--lg-firefly-gold);
+	--ew-accent: var(--lg-moonlight);
+	--ew-accent-soft: var(--lg-accent-soft);
+	--ew-glass-bg: var(--lg-fill);
+	--ew-glass-bg-elevated: var(--lg-fill-elevated);
+	--ew-glass-bg-solid: var(--lg-fill-solid);
+	--ew-glass-blur: var(--lg-blur);
+	--ew-glass-saturate: var(--lg-saturate);
+	--ew-glass-stroke: rgba(185, 216, 232, 0.28);
+	--ew-glass-stroke-focus: rgba(246, 215, 122, 0.68);
+	--ew-glass-focus-stroke: rgba(246, 215, 122, 0.68);
+	--ew-glass-highlight: rgba(238, 246, 251, 0.30);
+	--ew-glass-shadow: rgba(5, 13, 27, 0.32);
+	--ew-modal-scrim: var(--lg-scrim-modal);
+	--ew-topbar-bg: rgba(14, 32, 49, 0.46);
+	--ew-card-inner-bg: var(--lg-fill-reading);
+	--ew-glass-card-bg: var(--lg-fill-note-embedded);
+	--ew-glass-card-hover: var(--lg-fill-note-hover);
+	--ew-code-bg: var(--lg-fill-code);
+	--ew-scene-image-filter: brightness(0.92) saturate(1.04);
+	--ew-scene-overlay-gradient: linear-gradient(180deg, rgba(16, 29, 56, 0.20), rgba(16, 47, 57, 0.08) 42%, rgba(11, 21, 40, 0.28));
+}
+
+html[data-ew-theme="daylight-coast"] {
+	color-scheme: light;
+	--ew-scene-bg: #dce8f5;
+	--ew-scene-twilight: #dce8f5;
+	--ew-ink-primary: #0f1b2d;
+	--ew-ink-secondary: rgba(17, 30, 52, 0.84);
+	--ew-ink-muted: rgba(28, 46, 74, 0.72);
+	--ew-ink-warm: #7a4618;
+	--ew-accent: #164988;
+	--ew-accent-soft: rgba(44, 100, 172, 0.16);
+	--ew-glass-bg: rgba(244, 248, 255, 0.62);
+	--ew-glass-bg-elevated: rgba(250, 252, 255, 0.78);
+	--ew-glass-bg-solid: rgba(242, 247, 254, 0.94);
+	--ew-glass-blur: 24px;
+	--ew-glass-saturate: 115%;
+	--ew-glass-stroke: rgba(15, 27, 45, 0.22);
+	--ew-glass-stroke-focus: rgba(31, 88, 168, 0.58);
+	--ew-glass-focus-stroke: rgba(31, 88, 168, 0.58);
+	--ew-glass-highlight: rgba(255, 255, 255, 0.72);
+	--ew-glass-shadow: rgba(30, 61, 93, 0.18);
+	--ew-modal-scrim: rgba(23, 43, 71, 0.42);
+	--ew-topbar-bg: rgba(247, 251, 255, 0.82);
+	--ew-card-inner-bg: rgba(255, 255, 255, 0.56);
+	--ew-glass-card-bg: rgba(255, 255, 255, 0.44);
+	--ew-glass-card-hover: rgba(255, 255, 255, 0.68);
+	--ew-code-bg: rgba(235, 242, 250, 0.92);
+	--ew-scene-image-filter: brightness(1.22) saturate(0.82);
+	--ew-scene-overlay-gradient: linear-gradient(180deg, rgba(221, 241, 255, 0.22), rgba(232, 245, 255, 0.08) 46%, rgba(199, 225, 246, 0.28));
+}
+
+html[data-ew-theme="starlight-harbor"] {
+	color-scheme: dark;
+	--ew-scene-bg: #10162e;
+	--ew-scene-twilight: #10162e;
+	--ew-ink-primary: #f2f5ff;
+	--ew-ink-secondary: rgba(226, 234, 255, 0.88);
+	--ew-ink-muted: rgba(214, 225, 255, 0.78);
+	--ew-ink-warm: #d9e4ff;
+	--ew-accent: #9bb8ff;
+	--ew-accent-soft: rgba(155, 184, 255, 0.22);
+	--ew-glass-bg: rgba(15, 21, 48, 0.32);
+	--ew-glass-bg-elevated: rgba(18, 25, 55, 0.48);
+	--ew-glass-bg-solid: rgba(14, 20, 43, 0.94);
+	--ew-glass-blur: 28px;
+	--ew-glass-saturate: 145%;
+	--ew-glass-stroke: rgba(199, 214, 255, 0.28);
+	--ew-glass-stroke-focus: rgba(178, 202, 255, 0.72);
+	--ew-glass-focus-stroke: rgba(178, 202, 255, 0.72);
+	--ew-glass-highlight: rgba(209, 221, 255, 0.24);
+	--ew-glass-shadow: rgba(5, 10, 30, 0.42);
+	--ew-modal-scrim: rgba(5, 9, 26, 0.65);
+	--ew-topbar-bg: rgba(15, 21, 48, 0.56);
+	--ew-card-inner-bg: rgba(18, 24, 50, 0.94);
+	--ew-glass-card-bg: rgba(184, 201, 255, 0.09);
+	--ew-glass-card-hover: rgba(193, 211, 255, 0.18);
+	--ew-code-bg: rgba(11, 16, 36, 0.96);
+	--ew-scene-image-filter: brightness(0.7) saturate(0.84) hue-rotate(10deg);
+	--ew-scene-overlay-gradient: linear-gradient(180deg, rgba(11, 15, 49, 0.3), rgba(24, 31, 71, 0.1) 48%, rgba(10, 18, 49, 0.35));
+}
+
+html[data-ew-theme="amber-horizon"] {
+	color-scheme: dark;
+	--ew-scene-bg: #302027;
+	--ew-scene-twilight: #302027;
+	--ew-ink-primary: #fff4e9;
+	--ew-ink-secondary: rgba(255, 236, 219, 0.88);
+	--ew-ink-muted: rgba(245, 219, 201, 0.8);
+	--ew-ink-warm: #ffe0b7;
+	--ew-accent: #f3b27a;
+	--ew-accent-soft: rgba(243, 178, 122, 0.2);
+	--ew-glass-bg: rgba(32, 22, 24, 0.42);
+	--ew-glass-bg-elevated: rgba(42, 28, 28, 0.58);
+	--ew-glass-bg-solid: rgba(41, 26, 27, 0.94);
+	--ew-glass-blur: 24px;
+	--ew-glass-saturate: 125%;
+	--ew-glass-stroke: rgba(255, 218, 187, 0.3);
+	--ew-glass-stroke-focus: rgba(255, 198, 146, 0.74);
+	--ew-glass-focus-stroke: rgba(255, 198, 146, 0.74);
+	--ew-glass-highlight: rgba(255, 224, 192, 0.23);
+	--ew-glass-shadow: rgba(29, 12, 14, 0.4);
+	--ew-modal-scrim: rgba(28, 12, 15, 0.6);
+	--ew-topbar-bg: rgba(38, 25, 28, 0.62);
+	--ew-card-inner-bg: rgba(44, 29, 31, 0.94);
+	--ew-glass-card-bg: rgba(255, 220, 192, 0.1);
+	--ew-glass-card-hover: rgba(255, 224, 197, 0.19);
+	--ew-code-bg: rgba(31, 21, 25, 0.96);
+	--ew-scene-image-filter: sepia(0.3) brightness(0.92) saturate(1.12);
+	--ew-scene-overlay-gradient: linear-gradient(180deg, rgba(54, 25, 41, 0.25), rgba(104, 51, 31, 0.12) 45%, rgba(53, 25, 34, 0.32));
+}
+
+html {
+	-webkit-tap-highlight-color: transparent;
+	-webkit-text-size-adjust: 100%;
+}
+
+html[data-ethereal-mode="spatial"] {
+	height: 100dvh;
+	overflow: hidden;
+	overscroll-behavior: none;
+	scrollbar-gutter: auto;
+	transition: none;
+}
+
+html[data-ethereal-mode="spatial"] body {
+	height: 100dvh;
+	overflow: hidden;
+	overscroll-behavior: none;
+	background: var(--ew-scene-twilight);
+	color: var(--ew-ink-primary);
+	font-family: var(--ew-font-ui);
+	transition: none;
+}
+
+html[data-ethereal-mode="spatial"] :where(#ew-home-launcher, #ew-world-viewport, #ew-topbar, #ew-launcher) :where(h1, h2, h3, h4, h5, h6, p, a, span, li, ul, ol, blockquote, code, pre, table, th, td, strong):not(.ew-control) {
+	transition: none;
+}
+
+html[data-ethereal-mode="reading"] {
+	min-height: 100dvh;
+	overflow-y: auto;
+}
+
+html[data-ethereal-mode="reading"] body {
+	min-height: 100dvh;
+	background: var(--ew-scene-twilight);
+	font-family: var(--ew-font-ui);
+}
+
+html[data-ethereal-mode="reading"] {
+	--card-bg: var(--ew-glass-bg-solid);
+	--float-panel-bg: var(--ew-glass-bg-solid);
+	--page-bg: transparent;
+}
+
+/* 玻璃基础表面：仅在外层壳使用 backdrop-filter，内部卡片保持纯半透明填充 */
+.ew-glass {
+	background: var(--ew-glass-bg);
+	border: 1px solid var(--ew-glass-stroke);
+	box-shadow:
+		inset 0 1px 0 var(--ew-glass-highlight),
+		0 16px 42px var(--ew-glass-shadow);
+	backdrop-filter: blur(var(--ew-glass-blur, 24px)) saturate(var(--ew-glass-saturate, 135%));
+	-webkit-backdrop-filter: blur(var(--ew-glass-blur, 24px)) saturate(var(--ew-glass-saturate, 135%));
+}
+
+.ew-glass:where(.ew-topbar) {
+	background: var(--ew-topbar-bg);
+}
+
+.ew-glass--elevated {
+	background: var(--ew-glass-bg-elevated);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.ew-glass,
+	.ew-glass--elevated {
+		background: var(--ew-glass-bg-solid);
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	.ew-glass,
+	.ew-glass--elevated {
+		background: var(--ew-glass-bg-solid);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+html[data-ew-glass="solid"] .ew-glass,
+html[data-ew-glass="solid"] .ew-glass--elevated {
+	background: var(--ew-glass-bg-solid);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+
+@media (prefers-contrast: more) {
+	.ew-glass,
+	.ew-glass--elevated {
+		background: color-mix(in srgb, var(--ew-glass-bg-solid) 85%, var(--ew-scene-bg));
+		border-color: var(--ew-ink-primary);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+/* 控件行为基线（mobile-native） */
+.ew-control {
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	transition:
+		transform 120ms var(--ew-ease-out),
+		background-color 160ms var(--ew-ease-out),
+		border-color 160ms var(--ew-ease-out);
+}
+
+.ew-control:active {
+	transform: scale(0.97);
+}
+
+.ew-control:focus-visible,
+.ew-window:focus-visible {
+	outline: 2px solid var(--ew-accent);
+	outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+	input.ew-input,
+	textarea.ew-input,
+	select.ew-input {
+		font-size: 16px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ew-control,
+	.ew-window,
+	.ew-hero,
+	.ew-toast {
+		transition: none !important;
+	}
+}
+
+html.motion-reduced .ew-control,
+html.motion-reduced .ew-window,
+html.motion-reduced .ew-hero,
+html.motion-reduced .ew-toast {
+	transition: none !important;
+}
+
+/* 阅读模式下兼容 Shirone 全局容器 */
+.ew-reading-stage {
+	position: relative;
+	z-index: 20;
+	padding-top: calc(5.25rem + var(--ew-safe-top));
+	padding-bottom: calc(2.5rem + var(--ew-safe-bottom));
+}
+
+.ew-reading-card-backdrop,
+html[data-ethereal-mode="reading"] .ew-reading-card-shell .m3-card {
+	backdrop-filter: blur(var(--ew-glass-blur, 24px)) saturate(var(--ew-glass-saturate, 135%));
+	-webkit-backdrop-filter: blur(var(--ew-glass-blur, 24px)) saturate(var(--ew-glass-saturate, 135%));
+}
+
+html[data-ew-glass="solid"] .ew-reading-card-backdrop,
+html[data-ew-glass="solid"][data-ethereal-mode="reading"] .ew-reading-card-shell .m3-card {
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+	.ew-reading-card-backdrop,
+	html[data-ethereal-mode="reading"] .ew-reading-card-shell .m3-card {
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+:is(.ew-note-prose, .ew-reading-card-shell .custom-md) {
+	--on-surface: var(--ew-ink-primary);
+	--on-surface-variant: var(--ew-ink-secondary);
+	--primary: var(--ew-accent);
+	--outline-variant: var(--ew-glass-stroke);
+	--inline-code-bg: var(--ew-code-bg);
+	--inline-code-color: var(--ew-ink-primary);
+	--tw-prose-body: var(--ew-ink-primary);
+	--tw-prose-headings: var(--ew-ink-primary);
+	--tw-prose-links: var(--ew-accent);
+	--tw-prose-bold: var(--ew-ink-primary);
+	--tw-prose-quotes: var(--ew-ink-secondary);
+	--tw-prose-captions: var(--ew-ink-muted);
+	min-width: 0;
+	color: var(--ew-ink-primary);
+	overflow-wrap: anywhere;
+}
+
+.ew-note-prose {
+	background: color-mix(in srgb, var(--ew-card-inner-bg), var(--ew-glass-bg-solid));
+	border-radius: var(--shape-corner-l);
+	padding: var(--m3e-space-4);
+	font: var(--m3e-type-body-large);
+}
+
+:is(.ew-note-prose, .ew-reading-card-shell .custom-md) {
+	.katex {
+		color: var(--ew-ink-primary);
+	}
+
+	.katex-display {
+		max-width: 100%;
+		overflow: auto hidden;
+		padding-block: var(--m3e-space-2);
+	}
+
+	.katex-display-container .katex-display {
+		overflow: visible;
+	}
+
+	.m3-admonition {
+		background: color-mix(in srgb, var(--m3-admonition-accent, var(--ew-accent)) 9%, var(--ew-code-bg));
+		color: var(--ew-ink-primary);
+	}
+
+	.m3-admonition.bdm-abstract {
+		--m3-admonition-accent: var(--ew-accent);
+	}
+
+	.markdown-table-scroll {
+		max-width: 100%;
+		overflow: auto hidden;
+		overscroll-behavior-inline: contain;
+	}
+
+	.markdown-table-scroll table {
+		min-width: 100%;
+		background: var(--ew-card-inner-bg);
+		color: var(--ew-ink-primary);
+	}
+
+	.markdown-table-scroll th,
+	.markdown-mermaid__surface {
+		background: var(--ew-code-bg);
+		color: var(--ew-ink-primary);
+	}
+
+	.markdown-mermaid {
+		--mermaid-canvas-background: var(--ew-code-bg);
+		--mermaid-canvas-text: var(--ew-ink-primary);
+		--mermaid-canvas-line: var(--ew-ink-secondary);
+		max-width: 100%;
+	}
+
+	:not(pre) > code {
+		background: var(--ew-code-bg);
+		color: var(--ew-ink-primary);
+		border-radius: var(--shape-corner-xs);
+		padding-inline: var(--m3e-space-1);
+		font: var(--m3e-type-code);
+	}
+
+	pre:not(.expressive-code pre) {
+		max-width: 100%;
+		overflow: auto;
+		background: var(--ew-code-bg);
+		color: var(--ew-ink-primary);
+		border-radius: var(--shape-corner-m);
+		padding: var(--m3e-space-4);
+		font: var(--m3e-type-code);
+	}
+
+	pre:not(.expressive-code pre) > code {
+		padding: 0;
+		background: transparent;
+		color: inherit;
+	}
+}
